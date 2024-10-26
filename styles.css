@@ -1093,6 +1093,6 @@ table.ab-table-fc td[col_index="0"] {
 }
 
 /**************** 兼容性补充 ******************/
-.ab-note :is(.markdown-preview-view, .markdown-rendered).is-readable-line-width:not(.matrix) :is(.markdown-rendered) {
-  width: auto;
+:is(.markdown-preview-view, .markdown-rendered).is-readable-line-width:not(.matrix) .ab-note :is(.markdown-rendered) {
+  width: auto !important;
 }

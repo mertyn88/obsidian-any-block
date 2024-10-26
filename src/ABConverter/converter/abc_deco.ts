@@ -198,31 +198,39 @@ const abc_title = ABConvert.factory({
   detail: "若直接处理代码或表格块，则会有特殊风格",
   process_param: ABConvert_IOEnum.el,
   process_return: ABConvert_IOEnum.el,
-  process: (el, header, content: HTMLElement): HTMLElement=>{
+  process: (el, header, content: HTMLElement): HTMLElement=>{ // content有特殊class，不能更换。要在他下面套壳
     const matchs = header.match(/^#(.*)/)
     if (!matchs || !matchs[1]) return content
     const arg1 = matchs[1]
 
-    // 修改元素
-    if(content.children.length!=1) return content
+    // 修改元素 - 把旧元素取出文档树
+    const el_content = document.createElement("div");
+    while (content.firstChild) {
+      const item = content.firstChild;
+      content.removeChild(item)
+      el_content.appendChild(item)
+    }
+    // 修改元素 - 重新构建结构
     const el_root = document.createElement("div"); content.appendChild(el_root); el_root.classList.add("ab-deco-title");
     const el_title = document.createElement("div"); el_root.appendChild(el_title); el_title.classList.add("ab-deco-title-title");
     const el_title_p = document.createElement("p"); el_title.appendChild(el_title_p); el_title_p.textContent = arg1;
-    const el_content = content.children[0] as HTMLElement; el_content.remove(); el_root.appendChild(el_content); el_content.classList.add("ab-deco-title-content");
-    const el_content_sub = el_content.childNodes[0]; if (!el_content_sub) return content;
+    el_root.appendChild(el_content); el_content.classList.add("ab-deco-title-content");
 
-    // 判断元素类型修改，以修改title风格
+    // 判断元素类型修改，以修改title风格 // TODO 话说混合应该用第一个还是直接none？先用第一个吧，因为说不定后面的是工具栏之类的
+    let el_content_sub = el_content.childNodes[0]; if (!el_content_sub) return content;
+    if (el_content_sub instanceof HTMLDivElement && el_content.childNodes.length == 1 && el_content.childNodes[0].childNodes[0]) { el_content_sub = el_content.childNodes[0].childNodes[0] } // 如果是重渲染，则再往下一层
     let title_type = "none"
     if (el_content_sub instanceof HTMLQuoteElement){title_type = "quote"
-      // 这里借用callout的样式，并去除原来的引用块样式
+      // 这里借用callout的样式
       el_root.classList.add("callout")
       el_title.classList.add("callout-title");
       el_content.classList.add("callout-content");
-
+      // 去除原来的引用块样式
+      const el_content_sub_parent =  el_content_sub.parentNode; if (!el_content_sub_parent) return content
       while (el_content_sub.firstChild) {
-        el_content.insertBefore(el_content_sub.firstChild, el_content_sub);
+        el_content_sub_parent.insertBefore(el_content_sub.firstChild, el_content_sub);
       }
-      el_content.removeChild(el_content_sub)
+      el_content_sub_parent.removeChild(el_content_sub)
     }
     else if (el_content_sub instanceof HTMLTableElement){title_type = "table"}
     else if (el_content_sub instanceof HTMLUListElement){title_type = "ul"}
