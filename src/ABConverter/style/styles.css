@@ -9,11 +9,11 @@
  *
  * 换行问题：AnyBlock的块宽度很多都是不满100%的，在窄区域中显示多文本时经常需要使用换行
  * - 不换行时
- *   - white-space: pre (有换行符要换)
+ *   - white-space: pre;          // 有换行符要换
  * - 换行时
- *   - white-space: normal
- *   - overflow-wrap: break-word (单词换行)
- *   - code {white-space: pre;} (一个用于手动控制不换行的方式)
+ *   - white-space: break-spaces; // 自动换行 ~normal~~
+ *   - overflow-wrap: break-word; // 单词中换行
+ *   - code {white-space: pre;}   // 一个用于手动控制不换行的方式
  */
 /**
  * 颜色相关
@@ -896,6 +896,26 @@ html[data-theme="dark"] #app {
 
 .ab-note .ab-nodes.min > .ab-nodes-children > .ab-nodes-node .ab-nodes-bracket {
   background-color: var(--node-color);
+}
+
+.ab-note .ab-nodes.scroll {
+  overflow-x: auto;
+}
+
+.ab-note .ab-nodes.scroll .ab-nodes-content {
+  white-space: nowrap;
+  max-width: 300px;
+  overflow-x: auto;
+}
+
+.ab-note table.scroll {
+  overflow-x: auto;
+}
+
+.ab-note table.scroll td {
+  white-space: nowrap;
+  max-width: 300px;
+  overflow-x: auto;
 }
 
 div.md-table-fig1 {
