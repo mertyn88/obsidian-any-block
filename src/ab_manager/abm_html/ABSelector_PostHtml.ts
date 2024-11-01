@@ -92,7 +92,19 @@ export class ABSelector_PostHtml{
           // @ts-ignore 类型“View”上不存在属性“file”
           if (this.settings.is_debug) console.log("Local cache present, perform a global refresh (rebuildView): ", app.workspace.activeLeaf?.view.file.basename)
           // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“rebuildView”
-          app.workspace.activeLeaf?.rebuildView()
+          const leaf = app.workspace.activeLeaf; if (!leaf) { return }
+          // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“containerEl”
+          const el = leaf.containerEl.querySelector(".markdown-source-view") as HTMLElement;
+          if (!el) {
+            if (this.settings.is_debug) console.log("找不到实时模式div，不强制刷新")
+            return
+          }
+          if (el.style.display!="none") { // 在Ctrl+鼠标悬浮方式显示的内容中，这里会被触发。但不应该强制刷新，否则页面定位会被重置          
+            if (this.settings.is_debug) console.log("处于实时模式，不强制刷新")
+            return
+          }
+          // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“rebuildView”
+          leaf.rebuildView()
           return
         }
       }
