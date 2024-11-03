@@ -59,38 +59,66 @@ export class ABSelector_PostHtml{
     //     Obsidian后处理机制：一个文档会被切割成成div stream，这是一个div数组，每个数组元素会在这里走一遍。即分步渲染，有益于性能优化
     else{
       // 一些基本信息
-      const is_newContent = (cache_mdLine != mdSrc.to_line_all || cache_mdContent != mdSrc.content_all) // 新的md笔记或当前md笔记被修改过
       const is_start = (mdSrc.from_line == 0 || mdSrc.content_all.split("\n").slice(0, mdSrc.from_line).join("\n").trim() == "") // 片段为md的开头 (且非cache的情况)
       const is_end = (mdSrc.to_line == mdSrc.to_line_all)   // 片段是否为md的结尾
-      const is_onlyPart = (is_newContent && !is_start)      // 片段是否由于ob的缓存而未能重新渲染 // TODO FIX BUG: 如果是开头片段的仅加载，则这里判断出错，以为不是仅加载
-      if (is_newContent || is_start) {
-        // @ts-ignore 类型“View”上不存在属性“file”
-        cache_mdName = app.workspace.activeLeaf?.view.file.path
-        cache_mdContent = mdSrc.content_all;
-        cache_mdLength = mdSrc.content_all.length;
-        cache_mdLine = mdSrc.to_line_all;
+
+      // 一些基本信息 - 是否存在内容更新。若是，则更新缓存并设置一次强行刷新
+      let is_newContent:boolean = false // 是否内容变更，若是则需要强制刷新。注意，经过后面多次判断后值才是对的
+      let cache_item = null;
+      {
+        // 先查缓存
+        for (let item of cache_map) {
+          // @ts-ignore 类型“View”上不存在属性“file”
+          if (item.name == app.workspace.activeLeaf?.view.file.path) {
+            // b1. 有缓存过
+            cache_item = item
+            break;
+          }
+        }
+        // b1. 无缓存 -> 有修改
+        if (!cache_item) {
+          // @ts-ignore 类型“View”上不存在属性“file”
+          cache_item = {name: app.workspace.activeLeaf?.view.file.path, content: mdSrc.content_all}
+          cache_map.push(cache_item)
+          is_newContent = true
+          if (this.settings.is_debug) console.log(" !! 无缓存 -> 有修改, perform a global refresh (rebuildView): ", cache_item, ctx)
+        }
+        // b2. 有缓存
+        else {
+          // b2.1. 内容变 -> 有修改
+          if (cache_item.content != mdSrc.content_all) {
+            cache_item.content = mdSrc.content_all
+            is_newContent = true
+            if (this.settings.is_debug) console.log(" !! 有缓存, 内容变 -> 有修改, perform a global refresh (rebuildView): ", cache_item, ctx)
+          }
+          // b2.2. 内容不变 -> 无修改
+          else {
+            is_newContent = false
+          }
+        }
+      }
+
+      if (is_newContent || is_start) { // 内容修改了或处于开头位置
         selected_els = []
         selected_mdSrc = null
       }
       if (this.settings.is_debug) {
         console.log(` -- ABPosthtmlManager.processor, called by 'ReadMode'. `+
           "[current] " + `[${mdSrc.from_line},${mdSrc.to_line})/${mdSrc.to_line_all}. `+
-            `${is_start?"is_start ":""}${is_end?"is_end ":""}${is_onlyPart?"is_onlyPart ":""}`+
+            `${is_start?"is_start ":""}${is_end?"is_end ":""}`+
           "[last] " + `${(selected_mdSrc && selected_mdSrc.header)?"in ABBlock: "+selected_mdSrc.header+". ":""}`
         );
       }
 
       // 特殊，如果是带缓存的情况下，应该强制重新刷新
       // 如果没有这个，如果从阅读模式切换回实时模式，并只修改一部分内容再切换回阅读模式，那么 `ABPosthtmlManager.processor, called by 'ReadMode'` 只会识别到那些有改动的块，其他不再走这里
-      // 本来想用上面的 `is_onlyPart`，但不准的。因为开头片段被修改过，则判断不了，然后想象还是用回 `is_newContent` 作为判断依据
+      // 本来想用旧版的 `is_onlyPart`，但不准的。因为开头片段被修改过，则判断不了，然后想象还是用回 `is_newContent` 作为判断依据
       // TODO 这里存在改进的空间，如果这里触发了实际上会渲染 n+m 次，n是受影响的div，m是全文的div。前者这里可以弄个flag来消除掉，没必要进行
       if (is_newContent) {
         // 性能优化：如果不包含ab块，那就不强制刷新，以免影响正常页面
-        if (/\n((\s|>\s|-\s|\*\s|\+\s)*)(%%)?(\[((?!toc)(?!TOC)[0-9a-zA-Z\u4e00-\u9fa5].*)\]):?(%%)?\s*\n/.test(cache_mdContent) ||
-          /\n((\s|>\s|-\s|\*\s|\+\s)*)(:::)\s?(\S*)\n/.test(cache_mdContent)
+        if (/\n((\s|>\s|-\s|\*\s|\+\s)*)(%%)?(\[((?!toc)(?!TOC)[0-9a-zA-Z\u4e00-\u9fa5].*)\]):?(%%)?\s*\n/.test(cache_item.content) ||
+          /\n((\s|>\s|-\s|\*\s|\+\s)*)(:::)\s?(\S*)\n/.test(cache_item.content)
         ) {
-          // @ts-ignore 类型“View”上不存在属性“file”
-          if (this.settings.is_debug) console.log("Local cache present, perform a global refresh (rebuildView): ", app.workspace.activeLeaf?.view.file.basename)
           // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“rebuildView”
           const leaf = app.workspace.activeLeaf; if (!leaf) { return }
           // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“containerEl”
@@ -220,11 +248,12 @@ function findABBlock_end() {
   abConvertEvent(document)
 }
 
-// 缓存组，用来比较看内容是否发生了概念
-let cache_mdContent: string = ""
-let cache_mdName: string = ""
-let cache_mdLine: number = 0
-let cache_mdLength: number = 0
+// 缓存组，用来比较看内容是否发生了变化
+// let cache_mdContent: string = ""                     // 缓存当前的内容。看是否启用强制刷新
+// let cache_mdName: string = ""
+// let cache_mdLine: number = 0
+// let cache_mdLength: number = 0
+let cache_map: {name: string, content:string}[] = [];   // 新的缓存系统。之前的有bug (多个阅读视图在同一Leaf时)，弃用
 let selected_els: HTMLElement[] = [];                   // 正在选择中的元素 (如果未在AB块内，还未开始选择，则为空)
 let selected_mdSrc: HTMLSelectorRangeSpec|null = null;  // 已经选中的范围   (如果未在AB块内，还未开始选择，则为空)
 /**
