@@ -66,10 +66,14 @@ export class ABSelector_PostHtml{
       let is_newContent:boolean = false // 是否内容变更，若是则需要强制刷新。注意，经过后面多次判断后值才是对的
       let cache_item = null;
       {
+        // ATTENTION 这里说一个大坑：
+        // app.workspace.activeLeaf?.view.file.path 获取的文件路径名和 ctx 的文件名有可能不一致，这种情况是：
+        // 当文件A通过悬浮链接显示文件B时，此时叶子节点方式获取到的是文件A的的文件名，而ctx方式获取到的是文件B的文件名
+        // 而这里的mdSrc对应的是对应内容的那个文件名，如果用叶子节点方式，可能产生不一致的 !!! 这里推荐只使用ctx方式 !!!
+
         // 先查缓存
         for (let item of cache_map) {
-          // @ts-ignore 类型“View”上不存在属性“file”
-          if (item.name == app.workspace.activeLeaf?.view.file.path) {
+          if (item.name == ctx.sourcePath) {
             // b1. 有缓存过
             cache_item = item
             break;
@@ -77,8 +81,7 @@ export class ABSelector_PostHtml{
         }
         // b1. 无缓存 -> 有修改
         if (!cache_item) {
-          // @ts-ignore 类型“View”上不存在属性“file”
-          cache_item = {name: app.workspace.activeLeaf?.view.file.path, content: mdSrc.content_all}
+          cache_item = {name: ctx.sourcePath, content: mdSrc.content_all}
           cache_map.push(cache_item)
           is_newContent = true
           if (this.settings.is_debug) console.log(" !! 无缓存 -> 有修改, perform a global refresh (rebuildView): ", cache_item, ctx)
@@ -122,15 +125,15 @@ export class ABSelector_PostHtml{
           // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“rebuildView”
           const leaf = app.workspace.activeLeaf; if (!leaf) { return }
           // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“containerEl”
-          const el = leaf.containerEl.querySelector(".markdown-source-view") as HTMLElement;
-          if (!el) {
-            if (this.settings.is_debug) console.log("找不到实时模式div，不强制刷新")
-            return
-          }
-          if (el.style.display!="none") { // 在Ctrl+鼠标悬浮方式显示的内容中，这里会被触发。但不应该强制刷新，否则页面定位会被重置          
-            if (this.settings.is_debug) console.log("处于实时模式，不强制刷新")
-            return
-          }
+          // const el = leaf.containerEl.querySelector(".markdown-source-view") as HTMLElement;
+          // if (!el) {
+          //   if (this.settings.is_debug) console.log("找不到实时模式div，不强制刷新")
+          //   return
+          // }
+          // if (el.style.display!="none") { // 在Ctrl+鼠标悬浮方式显示的内容中，这里会被触发。但不应该强制刷新，否则页面定位会被重置          
+          //   if (this.settings.is_debug) console.log("处于实时模式，不强制刷新")
+          //   return
+          // }
           // @ts-ignore 类型“WorkspaceLeaf”上不存在属性“rebuildView”
           leaf.rebuildView()
           return
