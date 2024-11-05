@@ -100,6 +100,10 @@ html[data-theme="dark"] #app {
   display: none;
 }
 
+.print .ab-replaceEl > button {
+  display: none;
+}
+
 /**
  * 替换内容
  * .ab-replace         // 整体 (外框、圆角)
@@ -223,7 +227,7 @@ html[data-theme="dark"] #app {
 .ab-note .ab-list-table-witharrow > div > p:first-child,
 .ab-note .ab-nodes-content > div > p:first-child,
 .ab-note .ab-items-item > div > div > p:first-child, .ab-note .ab-items-item > div > div > ul:first-child {
-  margin-top: 0;
+  margin-top: 2px;
 }
 
 .ab-note td > p:last-child, .ab-note th > p:last-child,
@@ -236,7 +240,7 @@ html[data-theme="dark"] #app {
 .ab-note .ab-list-table-witharrow > div > p:last-child,
 .ab-note .ab-nodes-content > div > p:last-child,
 .ab-note .ab-items-item > div > div > p:last-child, .ab-note .ab-items-item > div > div > ul:last-child {
-  margin-bottom: 0;
+  margin-bottom: 2px;
 }
 
 .ab-note table.ab-table {
@@ -434,10 +438,15 @@ html[data-theme="dark"] #app {
 
 .ab-note table.ab-list-table.ab-table-folder .ab-foldable-tr > td > div {
   display: inline-block;
+  vertical-align: top;
 }
 
 .ab-note table.ab-list-table.ab-table-folder .ab-foldable-tr > td > div.ab-list-table-witharrow {
   padding-left: 6px;
+}
+
+.ab-note table.ab-list-table.ab-table-folder .ab-foldable-tr .ab-list-table-svg {
+  padding-top: 4px;
 }
 
 .ab-note table.ab-list-table.ab-table-folder .ab-foldable-tr .ab-list-table-svg svg {

@@ -109,7 +109,10 @@ html[data-theme="dark"] #app {
 }
 // 打印/pdf模式
 .print{
-  .ab-replace>.ab-button {
+  .ab-replace>.ab-button { // 刷新按钮
+    display: none;
+  }
+  .ab-replaceEl>button { // dir的折叠按钮
     display: none;
   }
 }
@@ -237,7 +240,7 @@ html[data-theme="dark"] #app {
   .ab-nodes-content>div>p:first-child,
   .ab-items-item>div>div>p:first-child, .ab-items-item>div>div>ul:first-child
   {
-    margin-top: 0;
+    margin-top: 2px;
   }
   td>p:last-child, th>p:last-child, // ob x 8
   td>ul:last-child, th>ul:last-child, 
@@ -250,7 +253,7 @@ html[data-theme="dark"] #app {
   .ab-nodes-content>div>p:last-child,
   .ab-items-item>div>div>p:last-child, .ab-items-item>div>div>ul:last-child
   {
-    margin-bottom: 0;
+    margin-bottom: 2px;
   }
 
   // 通用表格
@@ -438,14 +441,18 @@ html[data-theme="dark"] #app {
       &>td>div{
         // float: left; (这个没办法让div下的div2和div3在同一行，用inline-block代替之)
         display: inline-block;
+        vertical-align: top;
         &.ab-list-table-witharrow {
           padding-left: 6px; // old 15
         }
       }
-      .ab-list-table-svg svg{
-        width: 14px;
-        height: 14px;
-        fill: var(--ab-bright-color);
+      .ab-list-table-svg {
+        padding-top: 4px;
+        svg{  
+          width: 14px;
+          height: 14px;
+          fill: var(--ab-bright-color);
+        }
       }
       // 边框处理
       td:first-child {
