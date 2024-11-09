@@ -2,6 +2,8 @@
 
 ## Lightspot (亮点)
 
+![Obsidian plugin](https://img.shields.io/endpoint?url=https%3A%2F%2Fscambier.xyz%2Fobsidian-endpoints%2Fany-block.json) ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/LincZero/obsidian-any-block)
+
 A Obsidian Plugin. You can flexibility to create a 'Block' by some means. It also provides some useful features, like `list to table`.
 
 一个Obsidain插件。您可以通过某种方式灵活地创建一个“块”。它还提供了一些有用的功能，如“列表转表格”。
@@ -33,7 +35,7 @@ This is a **【Syntax free, Extensible、Powerful and flexible、Multi-platform�
 	- 备用网站链接：如果网站失效，则将网站链接部分的 `linczero.github.io` 替换成 `linczero-github-io.pages.dev` 就可以了
 	  （**本文的默认网站链接指向 github.io，如果国内有不能访问的朋友，那么大概率需要做这一步**）
 
-## More Links (相关链接)
+## Docs、More Links (相关链接)
 
 - en
 	- Related links：tutorial、use skill、contribution、secondary development
