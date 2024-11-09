@@ -104,6 +104,13 @@ html[data-theme="dark"] #app {
       margin-bottom: 0;
     }
   }
+  // 实时模式下的阅读模式（片段引用显示就是这种情况，覆盖掉前面的margin)
+  .markdown-source-view .markdown-preview-view {
+    .ab-replace{
+      margin-top: 0;
+      margin-bottom: 22px;
+    }
+  }
   // 源码模式
   .markdown-source-view.is-live-preview {}
 }

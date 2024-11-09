@@ -96,6 +96,11 @@ html[data-theme="dark"] #app {
   margin-bottom: 0;
 }
 
+.app-container .markdown-source-view .markdown-preview-view .ab-replace {
+  margin-top: 0;
+  margin-bottom: 22px;
+}
+
 .print .ab-replace > .ab-button {
   display: none;
 }
