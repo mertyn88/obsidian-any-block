@@ -69,6 +69,7 @@ const abc_fold = ABConvert.factory({
   }
 })
 
+
 const abc_scroll = ABConvert.factory({
   id: "scroll",
   name: "滚动",
@@ -152,6 +153,70 @@ const abc_overfold = ABConvert.factory({
   }
 })
 
+  // 可以匹配如:
+  // width(25%,25%,50%)
+  // width(100px,10rem,10.5) 
+  // width(100)
+  const abc_width = ABConvert.factory({
+    id: "width",
+    name: "宽度控制",
+    match: /^width\(((?:\d*\.?\d+(?:%|px|rem)?,\s*)*\d*\.?\d+(?:%|px|rem)?)\)$/,
+    process_param: ABConvert_IOEnum.el,
+    process_return: ABConvert_IOEnum.el,
+    process: (el, header, content: HTMLElement): HTMLElement=>{
+      const matchs = header.match(/^width\(((?:\d*\.?\d+(?:%|px|rem)?,\s*)*\d*\.?\d+(?:%|px|rem)?)\)$/)
+      if (!matchs || content.children.length!=1) return content
+  
+      // 支持 % 和 px 两种单位，默认单位是 px
+      const args = matchs[1].split(",").map(arg => 
+        /^\d*\.?\d+$/.test(arg.trim()) ? `${arg.trim()}%` : arg.trim()
+      )
+      // 检查容器是否包含需要处理的类名, 根据不同的容器, 处理方式不同
+      switch(true){
+        // ab-col支持渲染混合单位参数
+        case content.children[0].classList.contains('ab-col'): {
+          const sub_els = content.children[0].children
+          if(sub_els.length==0) return content
+          // 允许参数数量与分栏数量不一致，多的部分会被忽略 
+          for(let i=0;i<Math.min(sub_els.length, args.length);i++){
+            const sub_el = sub_els[i] as HTMLElement
+            if(args[i].endsWith("%")) sub_el.style.flex = `0 1 ${args[i]}`
+            else {
+              sub_el.style.width = args[i]
+              sub_el.style.flex = `0 0 auto`
+            }
+          }
+          return content
+        }
+        /**
+         * table目前无法很好渲染混合单位的参数（px和rem可以混合)
+         * 用settimeout延迟获取table宽度可解决，但是会延长渲染时间
+         * 可以尝试改用grid布局
+         */
+        // 使用非百分比单位尽量保证参数数量与列数一致，使用百分比单位表格会被按比例拉伸到行宽
+        case content.children[0].querySelector('table') !== null: {
+          const table = content.children[0].querySelector('table')
+          if (!table) return content
+          table.style.tableLayout = 'fixed'
+          // 检查是否存在 % 单位的参数，使用100%，否则使用fit-content
+          table.style.width = args.some(arg => arg.endsWith('%')) ? '100%' : 'fit-content'
+          // setTimeout(() => {
+          //   console.log('Table width:', table.offsetWidth);
+          //   console.log('Computed width:', window.getComputedStyle(table).width);
+          // }, 10);
+          table.querySelectorAll('tr').forEach(row => {
+            for (let i = 0; i < Math.min(row.children.length, args.length); i++) {
+              const cell = row.children[i] as HTMLElement
+              cell.style.width = cell.style.minWidth = cell.style.maxWidth = args[i]
+            }
+          })
+          return content
+        }
+        default:
+          return content
+      }
+    }
+  })
 
 const abc_addClass = ABConvert.factory({
   id: "addClass",
