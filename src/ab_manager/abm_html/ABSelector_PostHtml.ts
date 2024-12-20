@@ -42,7 +42,10 @@ export class ABSelector_PostHtml{
     // b1. RenderMarkdown引起的调用（需要嵌套寻找）
     if (!mdSrc) {
       if (false && this.settings.is_debug) console.log(" -- ABPosthtmlManager.processor, called by 'ReRender'");
-      if (!el.classList.contains("markdown-rendered")) return // anyblock / 一些插件 / callout 都会触发 (但callout的阅读模式不触发)
+      if (!el.classList.contains("markdown-rendered") // anyblock / 一些插件 / callout 都会触发 (但callout的阅读模式不触发)
+        && !el.parentElement?.parentElement?.classList?.contains("block-language-dataviewjs") // 这个是dvjs的情况，再父亲才有rendered标识
+        && !el.parentElement?.parentElement?.classList?.contains("block-language-dataview")
+      ) return
 
       // callout的情况下要简化el
       const calloutEl = el.querySelector(":scope>div>div.callout-content")
