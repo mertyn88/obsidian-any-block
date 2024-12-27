@@ -1,30 +1,30 @@
 # Any Block Converter
 
-## 使用
+## 사용
 
-### 使用流程
+### 사용 프로세스
 
 ```typescript
-// 转换器模块
+// 변환기 모듈
 import { ABConvertManager } from "ABConvertManager"
-// 加载所有转换器 (都是可选的)
-// (当然，如果A转换器依赖B转换器，那么你导入A必然导入B)
+// 모든 변환기 로드 (모두 선택 사항)
+// (물론, A 변환기가 B 변환기에 의존하는 경우, A를 가져오면 B도 가져와야 합니다)
 import {} from "./ABConverter/converter/abc_text"
 import {} from "./ABConverter/converter/abc_list"
 import {} from "./ABConverter/converter/abc_table"
 import {} from "./ABConverter/converter/abc_deco"
 import {} from "./ABConverter/converter/abc_ex"
-import {} from "./ABConverter/converter/abc_mermaid" // 可选建议：7.1MB
-import {} from "./ABConverter/converter/abc_markmap" // 可选建议：1.3MB
+import {} from "./ABConverter/converter/abc_mermaid" // 선택 사항 권장: 7.1MB
+import {} from "./ABConverter/converter/abc_markmap" // 선택 사항 권장: 1.3MB
 
-// 先注册默认渲染行为
+// 먼저 기본 렌더링 동작을 등록합니다.
 ABConvertManager.getInstance().redefine_renderMarkdown((markdown: string, el: HTMLElement): void => {...})
 
-// 然后按下面这个原型正常使用即可
+// 그런 다음 아래의 프로토타입을 사용하여 정상적으로 사용하면 됩니다.
 ABConvertManager.autoABConvert(el:HTMLDivElement, header:string, content:string): HTMLElement
 ```
 
-### Obsidian 回调函数设置
+### Obsidian 콜백 함수 설정
 
 ```typescript
 ABConvertManager.getInstance().redefine_renderMarkdown((markdown: string, el: HTMLElement, ctx?: any): void => {
@@ -32,14 +32,14 @@ ABConvertManager.getInstance().redefine_renderMarkdown((markdown: string, el: HT
      * Renders markdown string to an HTML element.
      * @deprecated - use {@link MarkdownRenderer.render}
      * 
-     * 原定义： 
+     * 원래 정의: 
      * @param markdown - The markdown source code
      * @param el - The element to append to
      * @param sourcePath - The normalized path of this markdown file, used to resolve relative internal links
-     *     此标记文件的规范化路径，用于解析相对内部链接
-     *     TODO 我可能知道为什么重渲染图片会出现bug了，原因应该在这里
+     *     이 마크다운 파일의 정규화된 경로로, 상대 내부 링크를 해결하는 데 사용됩니다.
+     *     TODO 아마도 이미지 재렌더링에 버그가 발생하는 이유를 여기서 찾을 수 있을 것 같습니다.
      * @param component - A parent component to manage the lifecycle of the rendered child components, if any
-     *     一个父组件，用于管理呈现的子组件(如果有的话)的生命周期
+     *     렌더링된 자식 컴포넌트(있는 경우)의 수명 주기를 관리하는 부모 컴포넌트
      * @public
      * 
      */
@@ -62,7 +62,7 @@ ABConvertManager.getInstance().redefine_renderMarkdown((markdown: string, el: HT
 })
 ```
 
-### MarkdownIt 回调函数设置
+### MarkdownIt 콜백 함수 설정
 
 ```typescript
 ABConvertManager.getInstance().redefine_renderMarkdown((markdown: string, el: HTMLElement): void => {
@@ -71,90 +71,90 @@ ABConvertManager.getInstance().redefine_renderMarkdown((markdown: string, el: HT
 })
 ```
 
-## 开发/设计/架构补充
+## 개발/설계/아키텍처 보충
 
-（先读src下的README）
+（먼저 src 하위의 README를 읽으세요）
 
-### 架构
+### 아키텍처
 
-也叫 Any Block Render (text->html时)
+또한 Any Block Render (text->html 시)
 
-因为模块化内置了很多 Converter (text->text等)，所以整体叫 Any Block Converter
+모듈화로 인해 많은 Converter (text->text 등)가 내장되어 있으므로 전체적으로 Any Block Converter라고 부릅니다.
 
-### 该模块设计不应依赖于Ob插件
+### 이 모듈 설계는 Ob 플러그인에 의존하지 않아야 합니다.
 
-**这个模块以前是依赖Ob插件接口的**，后来才改成可复用的 AnyBlock 转化器。
+**이 모듈은 이전에 Ob 플러그인 인터페이스에 의존했었습니다**, 나중에 재사용 가능한 AnyBlock 변환기로 변경되었습니다.
 
-为了高复用 (不仅仅在Ob插件上使用，还在md-it的等其他地方使用)
+높은 재사용성을 위해 (Ob 플러그인에서만 사용하는 것이 아니라 md-it 등 다른 곳에서도 사용하기 위해)
 
-1. 要与选择器解耦
-2. 相较于V2版本，为了不依赖于Ob底层，使用一个回调函数去替代 `MarkdownRenderer` 相关函数
+1. 선택기와의 결합을 해제해야 합니다.
+2. V2 버전과 비교하여, Ob의 하위 계층에 의존하지 않기 위해 `MarkdownRenderer` 관련 함수를 대체하는 콜백 함수를 사용합니다.
 
-### 程序缩写
+### 프로그램 약어
 
 - `AnyBlock`：`AB`
 - `AnyBlockConvert`：`ABC`
 - `AnyBlockSelector`：`ABS`
 - `AnyBlockRender`：`ABR`
 
-### 格式转换所在位置
+### 형식 변환 위치
 
-> ##### 思考
+> ##### 생각
 
-例如我有两个格式：格式1（有格式1解析渲染、将自己格式转别人格式，将别人格式转自己格式）、格式2（有格式2解析渲染、将别人的格式转自己式、将自己的格式转别人的格式）。问题在于：1转2和2转1的功能，应该怎么设置？
+예를 들어 두 가지 형식이 있습니다: 형식1 (형식1 해석 렌더링, 자신의 형식을 다른 형식으로 변환, 다른 형식을 자신의 형식으로 변환), 형식2 (형식2 해석 렌더링, 다른 형식을 자신의 형식으로 변환, 자신의 형식을 다른 형식으로 변환). 문제는: 1에서 2로의 변환과 2에서 1로의 변환 기능을 어떻게 설정해야 할까요?
 
-1. 都放在两个文件中
-    - 优点：两模块互相独立
-    - 缺点：造成冗余，而非复用 —— 只写一遍，两个程序都用一份
-2. 只放格式2
-    - 思想：该方式视为先有的格式1后有的格式2扩展。或视为格式1是更通用更广泛的格式，格式2属于扩展格式，自然由格式2负责12的互转
-    - 采用：abc_mermaid、abc_markmap 与 list 的转换属于此类，后期增加的新格式也属于此类
-3. 1转2由2实现，2转1则由1实现
-    - 思想：该方式视为1和2是两个商业软件，他们乐意于让对方的用户转移到自己这边，但并不乐意让自己的用户转到对方那边
-    - 采用：list、table 的互相转换属于此类
+1. 두 파일에 모두 넣기
+    - 장점: 두 모듈이 서로 독립적입니다.
+    - 단점: 중복을 초래하며, 재사용이 아닙니다. — 한 번만 작성하고 두 프로그램이 하나의 버전을 사용합니다.
+2. 형식2에만 넣기
+    - 생각: 이 방법은 형식1이 먼저 존재하고 형식2가 확장된 것으로 간주합니다. 또는 형식1이 더 일반적이고 광범위한 형식으로 간주되며, 형식2는 확장 형식으로, 자연스럽게 형식2가 1과 2의 상호 변환을 담당합니다.
+    - 채택: abc_mermaid, abc_markmap과 list의 변환은 이 유형에 속하며, 후속 추가되는 새로운 형식도 이 유형에 속합니다.
+3. 1에서 2로의 변환은 2가 구현하고, 2에서 1로의 변환은 1이 구현합니다.
+    - 생각: 이 방법은 1과 2가 두 개의 상업 소프트웨어로 간주되며, 그들은 상대방의 사용자가 자신 쪽으로 이동하는 것을 기꺼이 허용하지만, 자신의 사용자가 상대방 쪽으로 이동하는 것을 기꺼이 허용하지 않습니다.
+    - 채택: list와 table의 상호 변환은 이 유형에 속합니다.
 
-> ##### 总结
+> ##### 요약
 
-按格式的通用性分为：(越往上通用级别越高)
+형식의 일반성에 따라 분류: (위로 갈수록 일반 수준이 높아집니다)
 
 1. str
 2. html
-3. list、table
-4. mermaid、mindmap、……以后的扩展
+3. list, table
+4. mermaid, mindmap, …… 이후의 확장
 
-> ##### 策略
+> ##### 전략
 
-1. 低通用级格式要实现对高通用级格式的互转
-2. 同通用级则实现其他同通用级格式对自己格式的转化
+1. 낮은 일반성 형식은 높은 일반성 형식과의 상호 변환을 구현해야 합니다.
+2. 동일한 일반성 수준에서는 다른 동일한 일반성 형식이 자신의 형식으로 변환하는 것을 구현해야 합니다.
 
 ## todo
 
-1. 别名模块，AnyBlockConverter 不应该最后强制输出html。最后补md的行为是ob的别名模块做的，不应该由abc来快
-2. PlantUML，感觉很多东西都好用多了
+1. 별칭 모듈, AnyBlockConverter는 최종적으로 html을 강제로 출력해서는 안 됩니다. 마지막에 md를 보충하는 행동은 ob의 별칭 모듈이 하는 것이며, abc가 해서는 안 됩니다.
+2. PlantUML, 많은 것들이 더 유용해 보입니다.
 
 ## bug
 
-### mdit环境下onclick需要内嵌才生效
+### mdit 환경에서 onclick이 내장되어야만 작동
 
 ```typescript
-// TODO，onClick代码在mdit环境下按钮点击失效。测试代码如下
-const btn = document.createElement("button"); table.appendChild(btn); btn.textContent = "测试按钮1";
+// TODO, onClick 코드가 mdit 환경에서 버튼 클릭이 작동하지 않습니다. 테스트 코드는 다음과 같습니다.
+const btn = document.createElement("button"); table.appendChild(btn); btn.textContent = "테스트 버튼1";
 btn.onclick = () => { console.log("btn.onclick") }
 const btndiv = document.createElement("div"); table.appendChild(btndiv);
-btndiv.innerHTML = `<button onclick="console.log('Button was clicked!')">测试按钮2</button>`
-// 发现mdit环境下，按钮1无法正常按动，而按钮2可以
-// 原因应该是：因为mdit环境下的document对象是jdsom创建的，假的。这个dom对象后面会被转化为html_str，onclick的信息就丢失了
+btndiv.innerHTML = `<button onclick="console.log('Button was clicked!')">테스트 버튼2</button>`
+// mdit 환경에서 버튼1이 정상적으로 작동하지 않고, 버튼2는 작동하는 것을 발견했습니다.
+// 원인은: mdit 환경의 document 객체가 jdsom에 의해 생성된 가짜이기 때문입니다. 이 dom 객체는 나중에 html_str로 변환되며, onclick 정보가 손실됩니다.
 ```
 
-### mermaid找不到DOMPurify
+### mermaid에서 DOMPurify를 찾을 수 없음
 
-mermaid的一个未定义行为的报错 (不过修复了这个之后又说BBox找不到了)
+mermaid의 정의되지 않은 동작 오류 (하지만 이 문제를 해결한 후 BBox를 찾을 수 없다고 합니다)
 
 ```typescript
-// 见：https://github.com/kkomelin/isomorphic-dompurify
+// 참조: https://github.com/kkomelin/isomorphic-dompurify
 
-// 用
+// 사용
 import DOMPurify from "isomorphic-dompurify"
-// 替换
+// 대체
 import DOMPurify from "dompurify"
 ```

@@ -4,7 +4,7 @@
     "types": ["svelte", "node"],
     "experimentalDecorators": true,
     "baseUrl": ".",
-    // "inlineSourceMap": true, // 否则svelete文件报错：[svelte-preprocess] Encountered type error
+    // "inlineSourceMap": true, // 그렇지 않으면 svelete 파일 오류 발생: [svelte-preprocess] 타입 오류 발생
     "inlineSources": true,
     "module": "ESNext",
     "target": "ES6",
@@ -12,7 +12,7 @@
     "noImplicitAny": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    // "allowSyntheticDefaultImports": true, // markdown-it模块要加这个
+    // "allowSyntheticDefaultImports": true, // markdown-it 모듈에 이 옵션을 추가해야 함
     "isolatedModules": true,
     "strictNullChecks": true,
     "lib": [
@@ -20,8 +20,8 @@
       "ES5",
       "ES6",
       "ES7",
-      "dom.iterable"  // 并重新启动项目，不然该代码报错：for (let el of blockEl.querySelectorAll("[id^=TX_]"))
-                      // 或在for of时报错：类型“HTMLCollection”必须具有返回迭代器的 "[Symbol.iterator]()" 方法
+      "dom.iterable"  // 프로젝트를 다시 시작하지 않으면 이 코드 오류 발생: for (let el of blockEl.querySelectorAll("[id^=TX_]"))
+                      // 또는 for of에서 오류 발생: 타입 "HTMLCollection"은 "[Symbol.iterator]()" 메서드를 반환하는 이터레이터를 가져야 함
     ],
   },
   "include": [

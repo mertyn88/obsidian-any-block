@@ -1,9 +1,9 @@
 /**
- * 处理器_两列列表版
+ * 처리기_두 열 목록 버전
  * 
- * - md_str <-> 列表数据
- * - 列表数据 <-> html
- * - 表格数据 -> 列表数据
+ * - md_str <-> 목록 데이터
+ * - 목록 데이터 <-> html
+ * - 표 데이터 -> 목록 데이터
  */
 
 import { ABReg } from '../ABReg'
@@ -11,39 +11,36 @@ import {ABConvert_IOEnum, ABConvert, type ABConvert_SpecSimp} from "./ABConvert"
 import {ABConvertManager} from "../ABConvertManager"
 import type {ListItem, List_ListItem} from "./abc_list"
 
-
-/**
- * 二列列表，特征是level只有0和1
- * 
- * @detail
- * 通常用于：
- * - 二层一叉树
- *     - dirTree的初处理
- *     - Tabs
- *     - TimeLine
- *     - 仿列表
- *     - ...
- * - 二层多叉树
- *     - fc-table (首列重要树)
- *     - ...
- * 
- * 特别是对于mdit-container的 `:::+@` 来说，这种方式是更为方便的
- */
+/// 두 열 목록, 특징은 level이 0과 1만 있음
+/// 
+/// @detail
+/// 일반적으로 사용됨:
+/// - 이층 일차 트리
+///     - dirTree의 초기 처리
+///     - 탭
+///     - 타임라인
+///     - 리스트 모방
+///     - ...
+/// - 이층 다차 트리
+///     - fc-table (첫 열 중요한 트리)
+///     - ...
+/// 
+/// 특히 mdit-container의 `:::+@`에 대해서는 이 방식이 더 편리함
 export interface C2ListItem extends ListItem {
   level: 0|1;
 }[]
 export type List_C2ListItem = C2ListItem[]
 
-/// 一些列表相关的工具集
+/// 일부 목록 관련 도구 모음
 export class C2ListProcess{
 
   // ----------------------- str -> listData ------------------------
 
   /**
-   * 多层树转二层一叉树
+   * 다층 트리를 이층 일차 트리로 변환
    * 
    * @detail
-   * 特点是level只有0和1两种
+   * 특징은 level이 0과 1 두 가지뿐임
    * 
    * example:
    * - 1
@@ -60,9 +57,9 @@ export class C2ListProcess{
     let list_itemInfo2: List_C2ListItem = []
     const level1:0 = 0
     const level2:1 = 1
-    let flag_leve2 = false  // 表示触发过level2，当遇到level1会重置
+    let flag_leve2 = false  // level2가 트리거되었음을 나타내며, level1을 만나면 리셋됨
     for (let itemInfo of list_itemInfo) {
-      if (level1>=itemInfo.level){                                // 是level1
+      if (level1>=itemInfo.level){                                // level1임
         list_itemInfo2.push({
           content: itemInfo.content.trim(),
           level: level1
@@ -70,8 +67,8 @@ export class C2ListProcess{
         flag_leve2 = false
         continue
       }
-      if (true){                                                  // 是level2/level2+/level2-
-        if (!flag_leve2){                                           // 新建
+      if (true){                                                  // level2/level2+/level2-임
+        if (!flag_leve2){                                           // 새로 생성
           list_itemInfo2.push({
             content: itemInfo.content.trim(),
             level: level2
@@ -79,7 +76,7 @@ export class C2ListProcess{
           flag_leve2 = true
           continue
         }
-        else {                                                      // 内换行
+        else {                                                      // 내부 줄바꿈
           let old_itemInfo = list_itemInfo2.pop()
           if(old_itemInfo){
             let new_content = itemInfo.content.trim()
@@ -98,10 +95,10 @@ export class C2ListProcess{
   }
 
   /**
-   * 多层树转二层树
+   * 다층 트리를 이층 트리로 변환
    * 
    * @detail
-   * 特点是level只有0和1两种
+   * 특징은 level이 0과 1 두 가지뿐임
    * 
    * example:
    * - 1
@@ -120,21 +117,21 @@ export class C2ListProcess{
     const level1:0 = 0
     const level2:1 = 1
     for (let itemInfo of list_itemInfo) {
-      if (level1>=itemInfo.level){                                // 是level1
+      if (level1>=itemInfo.level){                                // level1임
         list_itemInfo2.push({
           content: itemInfo.content.trim(),
           level: level1
         })
         continue
       }
-      if (level2>=itemInfo.level){                                // 是level2/level2-
+      if (level2>=itemInfo.level){                                // level2/level2-임
         list_itemInfo2.push({
           content: itemInfo.content.trim(),
           level: level2
         })
         continue
       }
-      else{                                                       // level2+，内换行                                                     // 
+      else{                                                       // level2+임, 내부 줄바꿈
         let old_itemInfo = list_itemInfo2.pop()
         if(old_itemInfo){
           let new_content = itemInfo.content.trim()
@@ -149,99 +146,68 @@ export class C2ListProcess{
       }
     }
     return list_itemInfo2
-
-    /*
-    let list_itemInfo2: {content: string;level: number;}[] = []
-    let level1 = -1
-    let level2 = -1
-    for (let itemInfo of list_itemInfo) {
-      let this_level: number                                      // 一共三种可能：0、1、(1+)表
-      if (level1<0) {level1=itemInfo.level; this_level = level1}  // 未配置level1
-      else if (level1>=itemInfo.level) this_level = level1        // 是level1
-      else if (level2<0) {level2=itemInfo.level; this_level = level2}  // 未配置level2
-      else if (level2>=itemInfo.level) this_level = level2             // 是level2
-      else { // (level2<itemInfo.level)                           // 依然是level2，但进行内换行，并把列表符和缩进给加回去
-        let old_itemInfo = list_itemInfo2.pop()
-        if(old_itemInfo){
-          let new_content = "- "+itemInfo.content.trim()
-          for (let i=0; i<(itemInfo.level-level2); i++) new_content = " "+new_content;
-          new_content = old_itemInfo.content+"\n"+new_content
-          list_itemInfo2.push({
-            content: new_content,
-            level: level2
-          })
-        }
-        continue
-      }
-      list_itemInfo2.push({
-        content: itemInfo.content.trim(),
-        level: level2
-      })
-    }
-    console.log("前后数据", list_itemInfo, list_itemInfo2)
-    return list_itemInfo2*/
   }
 
   /**
-   * 列表转二列列表数据
+   * 목록을 두 열 목록 데이터로 변환
    * 
    * @detail
-   * 为什么要直接转，而不能list2data|data2c2data来复用
-   * 因为会损失信息
+   * 왜 직접 변환해야 하는가, list2data|data2c2data를 재사용할 수 없는 이유
+   * 정보 손실이 발생하기 때문
    * 
-   * @param text 列表的md文本
-   * @param modeG 识别内换行符号。内换行符被替换为换行+前缀，比listdata的处理简单些，后面不需要再提高level // TODO 这部分逻辑应该抽离出来做成独立的处理器
+   * @param text 목록의 md 텍스트
+   * @param modeG 내부 줄바꿈 기호 인식. 내부 줄바꿈 기호는 줄바꿈+접두사로 대체되며, listdata의 처리보다 간단하고, 이후 level을 높일 필요 없음 // TODO 이 부분 로직은 독립적인 처리기로 추출해야 함
    */
   static list2c2data(text: string, modeG=true){
     let list_itemInfo:List_C2ListItem = []
     const list_text = text.trimStart().split("\n")
 
-    // 获取最大的标题级别
+    // 최대 제목 수준 가져오기
     const first_match = list_text[0].match(ABReg.reg_list_noprefix)
     if (!first_match || first_match[1]) {
-      console.error("不是列表内容:", list_text[0])
+      console.error("목록 내용이 아님:", list_text[0])
       return list_itemInfo
     }
-    const root_list_level:number = first_match[1].length // 第一个列表(也是缩进最小)的 `- ` 前空格数
+    const root_list_level:number = first_match[1].length // 첫 번째 목록(가장 작은 들여쓰기)의 `- ` 앞 공백 수
     
-    // 循环填充
-    let current_content:string = "" // level1的子内容
-    let current_content_prefix:string = "" // level1的子内容的前缀
+    // 순환 채우기
+    let current_content:string = "" // level1의 하위 내용
+    let current_content_prefix:string = "" // level1의 하위 내용의 접두사
     for (let line of list_text) {
       const match_list = line.match(ABReg.reg_list_noprefix)
-      if (match_list && !match_list[1] && match_list[1].length<=root_list_level){ // b1. 遇到同等标题，level0新项出现
+      if (match_list && !match_list[1] && match_list[1].length<=root_list_level){ // b1. 동일한 제목을 만나면, level0 새 항목 등장
         add_current_content()
         let content = match_list[4]
-        // 替换掉内换行符
+        // 내부 줄바꿈 기호 대체
         if (modeG) {
           const inlines = match_list[4].split(ABReg.inline_split)
           if (inlines.length > 1) {
             const second_part = content.indexOf(inlines[1])
             current_content += content.slice(second_part) + "\n"
-            current_content_prefix = "  " // 内换行前缀必是双空格
+            current_content_prefix = "  " // 내부 줄바꿈 접두사는 반드시 두 공백
             content = inlines[0]
           }
         }
-        // 新项
+        // 새 항목
         list_itemInfo.push({
           content: content,
           level: 0
         })
-      } else { // b2. 子内容
-        if (current_content.trim()=="") { // 第一行的子内容前缀提取
+      } else { // b2. 하위 내용
+        if (current_content.trim()=="") { // 첫 번째 줄의 하위 내용 접두사 추출
           if (match_list && match_list[1]) current_content_prefix = match_list[1]
           else current_content_prefix = ""
         }
-        if (line.startsWith(current_content_prefix)) { // 子内容前缀去除
+        if (line.startsWith(current_content_prefix)) { // 하위 내용 접두사 제거
           line = line.substring(current_content_prefix.length);
         }
-        current_content += line+"\n" // 子内容拼接
+        current_content += line+"\n" // 하위 내용 연결
       }
     }
     add_current_content()
     return list_itemInfo
 
-    function add_current_content(){ // 刷新写入缓存的尾调用
+    function add_current_content(){ // 캐시의 꼬리 호출 새로고침
       if (current_content.trim()=="") return
       list_itemInfo.push({
         content: current_content,
@@ -252,29 +218,29 @@ export class C2ListProcess{
   }
 
   /**
-   * 标题大纲转列表数据
+   * 제목 개요를 목록 데이터로 변환
    * 
    * @detail
-   * 为什么要直接转，而不能title2list来复用
-   * 因为title2list会损失标题信息
+   * 왜 직접 변환해야 하는가, title2list를 재사용할 수 없는 이유
+   * title2list는 제목 정보를 손실하기 때문
    */
   static title2c2data(text: string){
     let list_itemInfo:List_C2ListItem = []
     const list_text = text.trimStart().split("\n")
 
-    // 获取最大的标题级别
+    // 최대 제목 수준 가져오기
     const first_match = list_text[0].match(ABReg.reg_heading_noprefix)
     if (!first_match || first_match[1]) {
-      console.error("不是标题内容:", list_text[0])
+      console.error("제목 내용이 아님:", list_text[0])
       return list_itemInfo
     }
-    const root_title_level:number = first_match[3].length-1 // 第一个标题(也是最大级别的标题的)的`#`的个数
+    const root_title_level:number = first_match[3].length-1 // 첫 번째 제목(가장 높은 수준의 제목)의 `#` 개수
     
-    // 循环填充
+    // 순환 채우기
     let current_content:string = ""
     for (let line of list_text) {
       const match_heading = line.match(ABReg.reg_heading_noprefix)
-      if (match_heading && !match_heading[1] && (match_heading[3].length-1)<=root_title_level){ // 遇到同等标题
+      if (match_heading && !match_heading[1] && (match_heading[3].length-1)<=root_title_level){ // 동일한 제목을 만남
         add_current_content()
         list_itemInfo.push({
           content: match_heading[4],
@@ -287,7 +253,7 @@ export class C2ListProcess{
     add_current_content()
     return list_itemInfo
 
-    function add_current_content(){ // 刷新写入缓存的尾调用
+    function add_current_content(){ // 캐시의 꼬리 호출 새로고침
       if (current_content.trim()=="") return
       list_itemInfo.push({
         content: current_content,
@@ -298,14 +264,14 @@ export class C2ListProcess{
   }
 
   /**
-   * 两列列表数据转标签栏
+   * 두 열 목록 데이터를 탭으로 변환
    */
   static c2data2tab(
     list_itemInfo: List_C2ListItem, 
     div: HTMLDivElement,
     modeT: boolean
   ){
-    // GeneratorTab，原svelte代码
+    // GeneratorTab, 원래 svelte 코드
     {
       const tab = document.createElement("div"); div.appendChild(tab); tab.classList.add("ab-tab-root");
       if (modeT) tab.setAttribute("modeT", "true")
@@ -314,7 +280,7 @@ export class C2ListProcess{
       let current_dom:HTMLElement|null = null
       for (let i=0; i<list_itemInfo.length; i++){
         const itemInfo = list_itemInfo[i]
-        if (!current_dom){            // 找开始标志
+        if (!current_dom){            // 시작 표시 찾기
           if (itemInfo.level==0){
             const nav_item = document.createElement("button"); nav.appendChild(nav_item); nav_item.classList.add("ab-tab-nav-item");
               nav_item.textContent = itemInfo.content.slice(0,20); nav_item.setAttribute("is_activate", i==0?"true":"false");
@@ -322,18 +288,18 @@ export class C2ListProcess{
               current_dom.setAttribute("style", i==0?"display:block":"display:none"); current_dom.setAttribute("is_activate", i==0?"true":"false");
           }
         }
-        else{                         // 找结束，不需要找标志，因为传过来的是二层一叉树
+        else{                         // 종료 찾기, 표시 필요 없음, 전달된 것은 이층 일차 트리임
           ABConvertManager.getInstance().m_renderMarkdownFn(itemInfo.content, current_dom)
           current_dom = null
         }
       }
-      // 元素全部创建完再来绑按钮事件，不然有可能有问题
+      // 모든 요소 생성 후 버튼 이벤트 바인딩, 그렇지 않으면 문제가 발생할 수 있음
       const lis:NodeListOf<HTMLButtonElement> = tab.querySelectorAll(":scope>.ab-tab-nav>.ab-tab-nav-item")
       const contents = tab.querySelectorAll(":scope>.ab-tab-content>.ab-tab-content-item")
-      if (lis.length!=contents.length) console.warn("ab-tab-nav-item和ab-tab-content-item的数量不一致")
+      if (lis.length!=contents.length) console.warn("ab-tab-nav-item과 ab-tab-content-item의 수가 일치하지 않음")
       for (let i=0; i<lis.length; i++){
-        // 1. 二选一，常规绑定
-        // ob选用
+        // 1. 둘 중 하나 선택, 일반 바인딩
+        // ob 선택
         lis[i].onclick = ()=>{
           for (let j=0; j<contents.length; j++){
             lis[j].setAttribute("is_activate", "false")
@@ -344,32 +310,13 @@ export class C2ListProcess{
           contents[i].setAttribute("is_activate", "true")
           contents[i].setAttribute("style", "display:block")
         }
-        // 2. 二选一，
-        // mdit选用
-        // lis[i].setAttribute("onclick",`
-        //   const i = ${i}
-        //   const tab_current = this
-        //   const tab_nav = this.parentNode
-        //   const tab_root = tab_nav.parentNode
-        //   const tab_content = tab_root.querySelector(":scope>.ab-tab-content")
-        //   const tab_nav_items = tab_nav.querySelectorAll(":scope>.ab-tab-nav-item")
-        //   const tab_content_items = tab_content.querySelectorAll(":scope>.ab-tab-content-item")
-        //   for (let j=0; j<tab_content_items.length; j++){
-        //     tab_nav_items[j].setAttribute("is_activate", "false")
-        //     tab_content_items[j].setAttribute("is_activate", "false")
-        //     tab_content_items[j].setAttribute("style", "display:none")
-        //   }
-        //   tab_current.setAttribute("is_activate", "true")
-        //   tab_content_items[i].setAttribute("is_activate", "true")
-        //   tab_content_items[i].setAttribute("style", "display:block")
-        // `)
       }
     }
 
     return div
   }
 
-  /// 将二列列表转 `容器-元素` 结构
+  /// 두 열 목록을 `컨테이너-요소` 구조로 변환
   static c2data2items(c2listdata:List_C2ListItem, el:HTMLElement): HTMLElement {
     const el_items = document.createElement("div"); el.appendChild(el_items); el_items.classList.add("ab-items")
     let el_item:HTMLElement|null = null;
@@ -390,7 +337,7 @@ export class C2ListProcess{
 
 const abc_list2c2listdata = ABConvert.factory({
   id: "list2c2listdata",
-  name: "列表转c2listdata",
+  name: "목록을 c2listdata로 변환",
   match: "list2c2listdata",
   default: "list2c2listdata",
   process_param: ABConvert_IOEnum.text,
@@ -402,7 +349,7 @@ const abc_list2c2listdata = ABConvert.factory({
 
 const abc_title2c2listdata = ABConvert.factory({
   id: "title2c2listdata",
-  name: "标题转c2listdata",
+  name: "제목을 c2listdata로 변환",
   match: "title2c2listdata",
   default: "title2c2listdata",
   process_param: ABConvert_IOEnum.text,
@@ -414,7 +361,7 @@ const abc_title2c2listdata = ABConvert.factory({
 
 const abc_c2listdata2tab = ABConvert.factory({
   id: "c2listdata2tab",
-  name: "c2listdata转标签",
+  name: "c2listdata를 탭으로 변환",
   match: "c2listdata2tab",
   default: "c2listdata2tab",
   process_param: ABConvert_IOEnum.c2list_strem,
@@ -426,7 +373,7 @@ const abc_c2listdata2tab = ABConvert.factory({
 
 const abc_c2listdata2items = ABConvert.factory({
   id: "c2listdata2items",
-  name: "c2listdata转容器结构",
+  name: "c2listdata를 컨테이너 구조로 변환",
   match: "c2listdata2items",
   default: "c2listdata2items",
   process_param: ABConvert_IOEnum.c2list_strem,

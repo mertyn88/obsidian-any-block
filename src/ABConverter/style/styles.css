@@ -1,22 +1,22 @@
 @charset "UTF-8";
 /**
- * ABC 样式文件
+ *ABC 스타일 파일
  *
- * 修改/使用说明：
+ *수정/사용 지침:
  *
- * vuepress-mdit环境直接用scss，ob这边需要使用css
- * 编辑ABC模块的该文件时，需要手动编译/使用vscode `easy sass` 插件
+ * vuepress-mdit 환경에서는 scss를 직접 사용하고, ob측에서는 css를 사용해야 합니다.
+ * ABC 모듈의 파일을 편집할 때 vscode `easy sass` 플러그인을 수동으로 컴파일/사용해야 합니다.
  *
- * 换行问题：AnyBlock的块宽度很多都是不满100%的，在窄区域中显示多文本时经常需要使用换行
- * - 不换行时
- *   - white-space: pre;          // 有换行符要换
- * - 换行时
- *   - white-space: break-spaces; // 自动换行 ~normal~~
- *   - overflow-wrap: break-word; // 单词中换行
- *   - code {white-space: pre;}   // 一个用于手动控制不换行的方式
+ * 줄 바꿈 문제: AnyBlock의 블록 너비 중 대부분이 100% 미만입니다. 좁은 영역에 여러 텍스트를 표시할 때 줄 바꿈이 필요한 경우가 많습니다.
+ * - 포장하지 않을 때
+ * - 공백: pre; // 변경할 개행 문자가 있습니다.
+ * - 포장할 때
+ * - 공백: 중단 공백; // 자동 줄 바꿈 ~정상~~
+ * - Overflow-wrap: break-word; // 단어의 줄 바꿈
+ * - code {white-space: pre;} // 줄 바꿈 없음을 수동으로 제어하는 ​​방법
  */
 /**
- * 颜色相关
+ *색상 관련
  */
 :root {
   --ab-tab-root-bg-color: #0d1117;

@@ -1,5 +1,5 @@
 /**
- * 转换器_目录树
+ * 변환기_디렉토리 트리
  * 
  * md_str <-> md_str
  * md_str <-> html
@@ -11,17 +11,17 @@ import {ABConvertManager} from "../ABConvertManager"
 import {ListProcess, type List_ListItem, type ListItem} from "./abc_list"
 
 export interface LTableItem {
-  content: string,        // 内容
-  level: number,          // 行缩进，仅当首列为0时有效
-  tableRow: number,       // 对应首行序列
-  tableColumn: number,    // 对应首列序列，主要看是否第一列，如果是则是主体
-  tableRowSpan: 1,        // 跨行数，一般总是一
-  type: string            // 文件类型。仅第一列有效
+  content: string,        // 내용
+  level: number,          // 행 들여쓰기, 첫 번째 열이 0일 때만 유효
+  tableRow: number,       // 해당 첫 번째 행 시퀀스
+  tableColumn: number,    // 해당 첫 번째 열 시퀀스, 주로 첫 번째 열인지 확인, 그렇다면 주체
+  tableRowSpan: 1,        // 행 병합 수, 일반적으로 항상 1
+  type: string            // 파일 유형. 첫 번째 열만 유효
 }
 export type List_LTableItem = LTableItem[]
 
 export class DirProcess{
-  /** 列表转列表格 */
+  /** 리스트를 리스트 테이블로 변환 */
   static list2lt(text: string, div: HTMLDivElement, modeT=false) {
     let list_itemInfo = DirProcess.list2dtdata(text)
     list_itemInfo = ListProcess.data2strict(list_itemInfo).map((item, index)=>{ return {
@@ -35,7 +35,7 @@ export class DirProcess{
     return DirProcess.dtdata2dt(list_itemInfo, div, modeT)
   }
 
-  /** 列表转树形目录 */
+  /** 리스트를 트리형 디렉토리로 변환 */
   static list2dt(text: string, div: HTMLDivElement, modeT=false) {
     let list_itemInfo = DirProcess.list2dtdata(text)
     list_itemInfo = ListProcess.data2strict(list_itemInfo).map((item, index)=>{ return {
@@ -50,24 +50,24 @@ export class DirProcess{
   }
 
   /**
-   * 列表文本转列表表格数据
+   * 리스트 텍스트를 리스트 테이블 데이터로 변환
    * 
-   * 只能通过“|”符号实现跨列
-   * 所以这种是没有合并单元格
+   * " | " 기호를 통해서만 열 병합 가능
+   * 따라서 병합된 셀이 없음
    * 
-   * 第一列的level总为0
+   * 첫 번째 열의 level은 항상 0
    */
   static list2dtdata(text: string): List_LTableItem{
-    // 表格行处理
+    // 테이블 행 처리
     let list_itemInfo:List_LTableItem = []
     const list_text = text.split("\n")
     let row_index = -1;
-    for (let line of list_text) { // 遍历文本行
+    for (let line of list_text) { // 텍스트 행 순회
       const m_line = line.match(ABReg.reg_list_noprefix)
-      if (m_line) { // 新的表格行
+      if (m_line) { // 새로운 테이블 행
         row_index++;
-        const content = m_line[4]                   // 这一行的内容
-        let level_inline: number = m_line[1].length // 缩进数
+        const content = m_line[4]                   // 이 행의 내용
+        let level_inline: number = m_line[1].length // 들여쓰기 수
         list_itemInfo.push({
           content: content.trimStart(),
           level: level_inline,
@@ -77,7 +77,7 @@ export class DirProcess{
           tableRowSpan: 1,
         })
       }
-      else{ // 旧的表格行 (即内换行追加)
+      else{ // 기존 테이블 행 (즉, 내부 줄 바꿈 추가)
         let itemInfo = list_itemInfo.pop()
         if(itemInfo){
           list_itemInfo.push({
@@ -92,12 +92,12 @@ export class DirProcess{
       }
     }
 
-    // 表格列处理
+    // 테이블 열 처리
     let list_itemInfo2:List_LTableItem = []
-    for (let row_item of list_itemInfo) { // 遍历表格行
+    for (let row_item of list_itemInfo) { // 테이블 행 순회
       let list_column_item: string[] = row_item.content.split(ABReg.inline_split)
-      for (let column_index=0; column_index<list_column_item.length; column_index++) { // 遍历表格列
-        // 第一列，需处理文件扩展名
+      for (let column_index=0; column_index<list_column_item.length; column_index++) { // 테이블 열 순회
+        // 첫 번째 열, 파일 확장자 처리 필요
         let type = "";
         if (column_index==0) {
           if (list_column_item[column_index].trimEnd().endsWith("/")) {
@@ -108,7 +108,7 @@ export class DirProcess{
             else type = parts[parts.length - 1];
           }
         }
-        // 填充
+        // 채우기
         list_itemInfo2.push({
           content: list_column_item[column_index], // modi
           level: row_item.level,
@@ -123,9 +123,9 @@ export class DirProcess{
     return list_itemInfo2
   }
 
-  /** 列表格数据转列表格
-   * 注意传入的列表数据应该符合：
-   * 第一列等级为0、没有分叉
+  /** 리스트 테이블 데이터에서 리스트 테이블로 변환
+   * 주의: 전달된 리스트 데이터는 다음을 충족해야 함:
+   * 첫 번째 열의 레벨은 0, 분기 없음
    */
   static dtdata2dt(
     list_tableInfo: List_LTableItem, 
@@ -133,47 +133,47 @@ export class DirProcess{
     modeT: boolean,
     is_folder=false
   ){
-    // GeneratorListTable，原Svelte
+    // GeneratorListTable, 원래 Svelte
     {
-      // 表格数据 组装成表格
+      // 테이블 데이터 테이블로 조립
       const table = document.createElement("table"); div.appendChild(table); table.classList.add("ab-table", "ab-list-table")
       if (is_folder) table.classList.add("ab-table-folder")
       if (modeT) table.setAttribute("modeT", "true")
 
-      // 创建表头和表体
+      // 테이블 헤드와 바디 생성
       let thead, tbody
       {
-        if(list_tableInfo[0].content.indexOf("< ")==0){ // 判断是否有表头
+        if(list_tableInfo[0].content.indexOf("< ")==0){ // 테이블 헤드가 있는지 확인
           thead = document.createElement("thead"); table.appendChild(thead);
           list_tableInfo[0].content=list_tableInfo[0].content.replace(/^\<\s/,"")
         }
         tbody = document.createElement("tbody"); table.appendChild(tbody);
       }
 
-      // 创建表格内容
-      let tr: HTMLElement // 当前所在的表格行
-      let is_head: boolean = false // 当前位于表头吗，还是表体
-      let prev_tr: HTMLElement|null = null   // 缓存上一行，用于判断是否可以折叠
+      // 테이블 내용 생성
+      let tr: HTMLElement // 현재 위치한 테이블 행
+      let is_head: boolean = false // 현재 테이블 헤드에 있는지, 아니면 테이블 바디에 있는지
+      let prev_tr: HTMLElement|null = null   // 이전 행 캐시, 접을 수 있는지 확인
       for (let cell_index=0; cell_index<list_tableInfo.length; cell_index++) {
         const cell_item = list_tableInfo[cell_index];
 
-        // 创建表格行
+        // 테이블 행 생성
         if (cell_item.tableColumn ==0) {
-          // 表头行（即是否第一行&&是否有表头）
+          // 테이블 헤드 행 (즉, 첫 번째 행인지 && 테이블 헤드가 있는지)
           if (cell_index==0 && thead){
             is_head = true
             tr = document.createElement("tr"); thead.appendChild(tr); // attr: {"tr_level": tr_line_level[index_line]}
           }
-          // 非表头行
+          // 비 테이블 헤드 행
           else{
             is_head = false
             tr = document.createElement("tr"); tbody.appendChild(tr); 
-            // 表头有些属性是没有的
+            // 테이블 헤드에는 일부 속성이 없음
             tr.classList.add("ab-foldable-tr");
             tr.setAttribute("tr_level", cell_item.level.toString()); tr.setAttribute("is_fold", "false"); tr.setAttribute("able_fold", "false");
             tr.setAttribute("type", cell_item.type);
           }
-          // 处理表格行的可折叠属性。若该行缩进数更多，则上一项必然可被折叠。最后一个肯定不能折叠故不用尾判断
+          // 테이블 행의 접을 수 있는 속성 처리. 해당 행의 들여쓰기 수가 더 많으면 이전 항목은 반드시 접을 수 있음. 마지막 항목은 접을 수 없으므로 꼬리 판단 불필요
           if (prev_tr
             && !isNaN(Number(prev_tr.getAttribute("tr_level"))) 
             && Number(prev_tr.getAttribute("tr_level")) < cell_item.level
@@ -183,11 +183,11 @@ export class DirProcess{
           prev_tr = tr
         }
 
-        // 创建表格单元格 (md版)
+        // 테이블 셀 생성 (md 버전)
         let td = document.createElement(is_head?"th":"td"); tr!.appendChild(td); td.setAttribute("rowspan", cell_item.tableRowSpan.toString());        
-        if (cell_item.tableColumn==0 && is_folder) { // 首列，处理文件夹
+        if (cell_item.tableColumn==0 && is_folder) { // 첫 번째 열, 폴더 처리
           let td_svg = document.createElement("div"); td.appendChild(td_svg); td_svg.classList.add("ab-list-table-svg")
-          // 文件夹/文件图标 // https://www.w3schools.com/css/css_icons.asp, https://fontawesome.com/
+          // 폴더/파일 아이콘 // https://www.w3schools.com/css/css_icons.asp, https://fontawesome.com/
           if (!is_head) {
             if (cell_item.type=="folder") {
               td_svg.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"/></svg>`
@@ -201,12 +201,12 @@ export class DirProcess{
         ABConvertManager.getInstance().m_renderMarkdownFn(cell_item.content, td_cell);
       }
 
-      // 折叠列表格 事件绑定
+      // 접을 수 있는 리스트 테이블 이벤트 바인딩
       const l_tr:NodeListOf<HTMLElement> = tbody.querySelectorAll("tr")
       for (let i=0; i<l_tr.length; i++){
         const tr = l_tr[i]
-        // 1. 二选一，嵌入内联onclick
-        // 当前mdit使用
+        // 1. 두 가지 중 하나 선택, 인라인 onclick 삽입
+        // 현재 mdit 사용
         //tr.setAttribute("onclick", `
         //  const tr = this
         //  const l_tr = tr.parentNode.querySelectorAll("tr")
@@ -215,7 +215,7 @@ export class DirProcess{
         //  if (isNaN(tr_level)) return
         //  const tr_isfold = tr.getAttribute("is_fold")
         //  if (!tr_isfold) return
-        //  let flag_do_fold = false  // 防止折叠最小层
+        //  let flag_do_fold = false  // 최소 레벨 접기 방지
         //  for (let j=i+1; j<l_tr.length; j++){
         //    const tr2 = l_tr[j]
         //    const tr_level2 = Number(tr2.getAttribute("tr_level"))
@@ -226,14 +226,14 @@ export class DirProcess{
         //  }
         //  if (flag_do_fold) tr.setAttribute("is_fold", tr_isfold=="true"?"false":"true")
         //`)
-        // 2. 二选一，正常绑定方法
-        // 当前ob使用
+        // 2. 두 가지 중 하나 선택, 정상적인 메서드 바인딩
+        // 현재 ob 사용
         tr.onclick = ()=>{
           const tr_level = Number(tr.getAttribute("tr_level"))
           if (isNaN(tr_level)) return
           const tr_isfold = tr.getAttribute("is_fold")
           if (!tr_isfold) return
-          let flag_do_fold = false  // 防止折叠最小层
+          let flag_do_fold = false  // 최소 레벨 접기 방지
           for (let j=i+1; j<l_tr.length; j++){
             const tr2 = l_tr[j]
             const tr_level2 = Number(tr2.getAttribute("tr_level"))
@@ -246,8 +246,8 @@ export class DirProcess{
         }
       }
 
-      // 折叠全列表格 事件绑定 // TODO，可以简化、复用。tr.onclick(这里加上可空传参)
-      const btn = document.createElement("button"); div.appendChild(btn); btn.textContent="全部折叠/展开"; btn.setAttribute("is_fold", "false");
+      // 전체 리스트 테이블 접기 이벤트 바인딩 // TODO, 간소화 및 재사용 가능. tr.onclick(여기에 선택적 매개변수 추가)
+      const btn = document.createElement("button"); div.appendChild(btn); btn.textContent="전체 접기/펼치기"; btn.setAttribute("is_fold", "false");
       btn.onclick = ()=>{
         const l_tr:NodeListOf<HTMLElement> = table.querySelectorAll("tr");
         for (let i=0; i<l_tr.length; i++) {
@@ -257,7 +257,7 @@ export class DirProcess{
             if (isNaN(tr_level)) return
             const tr_isfold = btn.getAttribute("is_fold"); // [!code] tr->btn
             if (!tr_isfold) return
-            let flag_do_fold = false  // 防止折叠最小层
+            let flag_do_fold = false  // 최소 레벨 접기 방지
             for (let j=i+1; j<l_tr.length; j++){
               const tr2 = l_tr[j]
               const tr_level2 = Number(tr2.getAttribute("tr_level"))
@@ -281,7 +281,7 @@ export class DirProcess{
 
 const abc_list2lt = ABConvert.factory({
   id: "list2lt",
-  name: "列表转列表表格",
+  name: "리스트를 리스트 테이블로 변환",
   match: /list2(md)?lt(T)?/,
   default: "list2lt",
   process_param: ABConvert_IOEnum.text,
@@ -296,7 +296,7 @@ const abc_list2lt = ABConvert.factory({
 
 const abc_list2dt = ABConvert.factory({
   id: "list2dt",
-  name: "列表转树状目录",
+  name: "리스트를 트리형 디렉토리로 변환",
   match: /list2(md)?dt(T)?/,
   default: "list2dt",
   process_param: ABConvert_IOEnum.text,
@@ -312,15 +312,15 @@ const abc_list2dt = ABConvert.factory({
 // =======================================================================
 
 /**
- * ascii目录数据
+ * ascii 디렉토리 데이터
  * 
  * @detail
- * 用于指导制表符，前缀的所有可能性：
- * 1. 根，无
- * 2. 非最后的文件，("│  "/"   ") * n + "├─ "
- * 2. 最后一个文件，("│  "/"   ") * n + "└─ "
+ * 탭 문자를 안내하는 데 사용되며, 접두사의 모든 가능성:
+ * 1. 루트, 없음
+ * 2. 마지막이 아닌 파일, ("│  "/"   ") * n + "├─ "
+ * 2. 마지막 파일, ("│  "/"   ") * n + "└─ "
  * 
- * 一个最佳测试demo： (重点检查b21前面是否正确)
+ * 최적의 테스트 데모: (b21 앞이 올바른지 확인)
  * .
  * ├─ a/
  * ├─ b/
@@ -330,31 +330,31 @@ const abc_list2dt = ABConvert.factory({
  * └─ c/
  *    └─ c1
  * 
- * 参考项目：https://github.com/yzhong52/ascii_tree/，不过这个项目是用rust写的，最后也没怎么参考到
+ * 참고 프로젝트: https://github.com/yzhong52/ascii_tree/, 하지만 이 프로젝트는 rust로 작성되었으며, 결국 많이 참고하지 않음
  */
 export interface DirListItem extends ListItem {
-  type: string;           // 类型 (folder/文件名后缀)
-  is_last: boolean;       // 是否该文件夹下最后一个文件
-  pre_as_text: string;    // ascii dir 会使用到这个前缀
+  type: string;           // 유형 (folder/파일명 확장자)
+  is_last: boolean;       // 해당 폴더의 마지막 파일인지 여부
+  pre_as_text: string;    // ascii dir에서 이 접두사를 사용함
 }[]
 export type List_DirListItem = DirListItem[]
 
 /**
-   * listdata 转 dirdata
+   * listdata를 dirdata로 변환
    * 
-   * TODO 未完成 with comment 功能
+   * TODO 미완성 with comment 기능
    */
 function listdata2dirdata(list: List_ListItem): List_DirListItem {
-  // is_have_vbar[x]表示在该项的后面直到出现>x的level前，会出现x level
-  // 用于控制 "|  " or "   "，以及 "├─ " or "└─ "
-  // 空视为true
+  // is_have_vbar[x]는 해당 항목 뒤에서 >x의 레벨이 나타날 때까지 x 레벨이 나타날 것임을 나타냄
+  // "|  " 또는 "   ", 그리고 "├─ " 또는 "└─ "을 제어하는 데 사용됨
+  // 비어 있으면 true로 간주
   let is_have_vbar: boolean[] = [];
   
   let newlist: List_DirListItem = [];
   for (let i=0; i<list.length; i++) {
     let item = list[i];
 
-    // 文件扩展名
+    // 파일 확장자
     let type: string;
     if (item.content.endsWith("/")) {
       type = "folder"
@@ -364,7 +364,7 @@ function listdata2dirdata(list: List_ListItem): List_DirListItem {
       else type = parts[parts.length - 1];
     }
 
-    // is_last。这里 O(n^2) 了，懒得优化
+    // is_last. 여기서 O(n^2) 됨, 최적화 귀찮음
     let is_last = true
     for (let j=i+1; j<list.length; j++) {
       if (list[j].level < item.level) {
@@ -375,19 +375,19 @@ function listdata2dirdata(list: List_ListItem): List_DirListItem {
         continue
       }
     }
-    is_have_vbar[item.level] = !is_last // 例如 root 目录，is_last = true，应标记 is_have_vbar[0] = false
+    is_have_vbar[item.level] = !is_last // 예를 들어 루트 디렉토리, is_last = true, is_have_vbar[0] = false로 표시해야 함
 
-    // 用 is_have_vbar 构造 pre_as_text
+    // is_have_vbar를 사용하여 pre_as_text 구성
     let pre_as_text = ""
     if (item.level>1) {
-      for (let i = 1; i < item.level; i++) { // 从1开始，root层没有vbar
-        if (!is_have_vbar.hasOwnProperty(i)) pre_as_text += "[e]" // 一般不会出现这种情况，除非一层直接往下跳两层
+      for (let i = 1; i < item.level; i++) { // 1부터 시작, 루트 레벨에는 vbar 없음
+        if (!is_have_vbar.hasOwnProperty(i)) pre_as_text += "[e]" // 일반적으로 이런 상황은 발생하지 않음, 한 레벨에서 두 레벨로 바로 점프하지 않는 한
         else if (is_have_vbar[i]) pre_as_text += "|  "
         else pre_as_text += "   "
       }
     }
 
-    // 新list
+    // 새로운 리스트
     newlist.push({
       content: item.content,
       level: item.level,
@@ -401,7 +401,7 @@ function listdata2dirdata(list: List_ListItem): List_DirListItem {
 
 const abc_list2astreeH = ABConvert.factory({
   id: "list2astreeH",
-  name: "列表到sacii目录树",
+  name: "리스트를 sacii 디렉토리 트리로 변환",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.text,
   process: (el, header, content: string): string=>{

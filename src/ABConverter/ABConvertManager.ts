@@ -1,23 +1,23 @@
 /** 
  * @detail
- * 具体用法和介绍等见 README.md
+ * 구체적인 사용법과 소개 등은 README.md를 참조하세요.
  * 
- * 依赖顺序
- * 1. ABConvert.ts，转换器的抽象基类
- * 2. ABConvertManager.ts，转换器的容器
- * 3. ……，其他具体的转换器
+ * 의존 순서
+ * 1. ABConvert.ts, 변환기의 추상 기반 클래스
+ * 2. ABConvertManager.ts, 변환기의 컨테이너
+ * 3. ……, 기타 구체적인 변환기
  * 
- * 跨平台兼容依赖问题
- * - 在Obsidian环境，能够使用document
- * - 在vuepress和mdit环境，他是使用纯文本来解析渲染md而非面向对象，也不依赖document。所以为了兼顾这个，需要额外安装Node.js中能使用的[jsdom](https://github.com/jsdom/jsdom)
+ * 크로스 플랫폼 호환성 문제
+ * - Obsidian 환경에서는 document를 사용할 수 있습니다.
+ * - vuepress와 mdit 환경에서는 순수 텍스트로 md를 파싱하고 렌더링하며 객체 지향적이지 않으며 document에 의존하지 않습니다. 따라서 이를 고려하여 Node.js에서 사용할 수 있는 [jsdom](https://github.com/jsdom/jsdom)을 추가로 설치해야 합니다.
  * 
- * jsdom 老install失败。网上搜说：
- * a: jsdom 依赖于 contextify，而 contextify 最近才支持 windows。安装它需要 python 和 C++ 编译器。
- * b: jsdom 使用 contextify 在 DOM 上运行 JavaScript。而 contextify 需要本地 C++ 编译器。根据官方自述，在 Windows 平台上必须安装一堆东西
- * 不过我后来尝试按一个回答中那样指定了版本就可以了：npm install -D jsdom@4.2.0
+ * jsdom 설치 실패. 인터넷 검색 결과:
+ * a: jsdom은 contextify에 의존하며, contextify는 최근에야 Windows를 지원합니다. 설치하려면 Python과 C++ 컴파일러가 필요합니다.
+ * b: jsdom은 contextify를 사용하여 DOM에서 JavaScript를 실행합니다. contextify는 로컬 C++ 컴파일러가 필요합니다. 공식 설명에 따르면 Windows 플랫폼에서는 많은 것을 설치해야 합니다.
+ * 하지만 나중에 한 답변에서 버전을 지정하니 설치가 가능했습니다: npm install -D jsdom@4.2.0
  */
 
-// AB转换器容器
+// AB 변환기 컨테이너
 import {
   ABConvert_IOEnum, 
   type ABConvert_IOType, 
@@ -27,17 +27,17 @@ import { autoABAlias } from "./ABAlias"
 import { ABCSetting } from "./ABReg"
  
 /**
-  * AB转换器的管理器。注意：使用前必须先执行：`redefine_renderMarkdown`
+  * AB 변환기의 관리자. 주의: 사용 전에 반드시 `redefine_renderMarkdown`을 실행해야 합니다.
   * 
   * @default
-  * 单例模式 
-  * 负责转换器的：注册、寻找、依次使用
+  * 싱글톤 패턴 
+  * 변환기의 등록, 검색, 순차적 사용을 담당합니다.
   */
 export class ABConvertManager {
 
-  /** --------------------------------- 特殊函数 ---------------------------- */
+  /** --------------------------------- 특수 함수 ---------------------------- */
 
-  /// 单例模式
+  /// 싱글톤 패턴
   static getInstance(): ABConvertManager {
     if (!ABConvertManager.m_instance) {
       ABConvertManager.m_instance = new ABConvertManager()
@@ -45,13 +45,13 @@ export class ABConvertManager {
     return ABConvertManager.m_instance;
   }
 
-  /// 单例
+  /// 싱글톤
   private static m_instance: ABConvertManager
 
-  /// 构造函数
+  /// 생성자
   private constructor() {
-    /// 环境打印 (编译期打印)
-    // @ts-ignore 用于检查obsidian是否存在，不存在的话正常是飘红的
+    /// 환경 출력 (컴파일 시 출력)
+    // @ts-ignore obsidian이 존재하는지 확인하기 위해 사용, 존재하지 않으면 정상적으로 빨간 줄이 그어집니다.
     if (typeof obsidian == 'undefined' && typeof app == 'undefined') {
       // @ts-ignore
       console.log('[environment]: markdown-it, without obsidian')
@@ -60,12 +60,12 @@ export class ABConvertManager {
     }
   }
 
-  /** --------------------------------- 处理器容器管理 --------------------- */
+  /** --------------------------------- 프로세서 컨테이너 관리 --------------------- */
 
-  /// ab处理器 - 严格版，的接口与列表 (动态)
+  /// ab 프로세서 - 엄격한 버전의 인터페이스 및 목록 (동적)
   public list_abConvert: ABConvert[] = []
 
-  /// 处理器一览表 - 下拉框推荐
+  /// 프로세서 목록 - 드롭다운 추천
   public getConvertOptions(){
     return this.list_abConvert
     .filter(item=>{
@@ -76,49 +76,49 @@ export class ABConvertManager {
     })
   }
 
-  /** --------------------------------- 通用解耦适配 (动态) ----------------- */
+  /** --------------------------------- 일반적인 디커플링 어댑터 (동적) ----------------- */
 
   /**
-   * 渲染文本为html
-   * @detail 这里需要能够被回调函数替换。从而用于接回软件自身的html渲染机制，来进行解耦
-   * @param markdown 原md
-   * @param el 要追加到的元素
-   * @param ctx Obsidian在这里需要传入 MarkdownRenderChild 类型，但为了跨平台我这里修改成可选的any类型
+   * 텍스트를 html로 렌더링
+   * @detail 여기서는 콜백 함수로 대체될 수 있어야 합니다. 소프트웨어 자체의 html 렌더링 메커니즘에 연결하여 디커플링을 수행합니다.
+   * @param markdown 원본 md
+   * @param el 추가할 요소
+   * @param ctx Obsidian에서는 여기서 MarkdownRenderChild 타입을 전달해야 하지만, 크로스 플랫폼을 위해 여기서는 선택적인 any 타입으로 수정했습니다.
    */
   public m_renderMarkdownFn:(markdown: string, el: HTMLElement, ctx?: any) => void = (markdown, el) => {
-    el.classList.add("markdown-rendered") // 并注意，应当在使用该函数前将el添加该css类，或者重定义时增加该条语句
-    console.error("AnyBlockError: 请先制定/重定义md渲染器")
+    el.classList.add("markdown-rendered") // 이 함수를 사용하기 전에 el에 이 css 클래스를 추가하거나 재정의할 때 이 문장을 추가해야 합니다.
+    console.error("AnyBlockError: md 렌더러를 먼저 지정/재정의하세요.")
   }
 
-  /// 用回调函数替换重渲染器
+  /// 콜백 함수로 재렌더러 대체
   public redefine_renderMarkdown(callback: (markdown: string, el: HTMLElement, ctx?: any) => void) {
     this.m_renderMarkdownFn = callback
   }
 
-  /** --------------------------------- 处理器的调用 ----------------------- */
+  /** --------------------------------- 프로세서 호출 ----------------------- */
   
   static startTime: number; // cache
   /**
-   * 自动寻找相匹配的ab处理器进行处理
+   * 자동으로 일치하는 ab 프로세서를 찾아 처리합니다.
    * 
    * @detail
-   *     ab转换器能根据header和content来将有段txt文本转换为html元素
-   *     主要分三个过程：
-   *     1. 预处理
-   *     2. 递归处理
-   *     3. 尾处理 (其实尾处理也可以归到预处理那)
-   * @param el 最后的渲染结果
-   * @param header 转换方式
-   * @param content 要转换的初始文本 (无前缀版本，前缀在选择器环节已经删除了)
-   * @param selectorName 选择器名，空表示未知
-   * @return 等于el，无用，后面可以删了
+   *     ab 변환기는 header와 content를 기반으로 텍스트 블록을 html 요소로 변환할 수 있습니다.
+   *     주로 세 가지 과정으로 나뉩니다:
+   *     1. 전처리
+   *     2. 재귀 처리
+   *     3. 후처리 (사실 후처리도 전처리에 포함될 수 있습니다.)
+   * @param el 최종 렌더링 결과
+   * @param header 변환 방식
+   * @param content 변환할 초기 텍스트 (접두사 없는 버전, 선택기 단계에서 접두사가 이미 삭제되었습니다.)
+   * @param selectorName 선택기 이름, 비어 있으면 미지정
+   * @return el과 동일, 무용지물, 나중에 삭제할 수 있습니다.
    */
   public static autoABConvert(el:HTMLDivElement, header:string, content:string, selectorName:string = ""): void{
-    let prev_result: ABConvert_IOType = content               // 上次转换后的结果，初始必为string
-    let prev_type: string = "string"                          // 上次转换后的结果的类型 (类型检测而来)
-    let prev_type2: ABConvert_IOEnum = ABConvert_IOEnum.text  // 上次转换后的结果的类型 (接口声明而来)
-    let prev_processor;                                       // 上一次转换的处理器
-    let prev = {                                              // 组合在一起是为了引用传参
+    let prev_result: ABConvert_IOType = content               // 이전 변환 결과, 초기에는 반드시 string
+    let prev_type: string = "string"                          // 이전 변환 결과의 타입 (타입 검사에 의해)
+    let prev_type2: ABConvert_IOEnum = ABConvert_IOEnum.text  // 이전 변환 결과의 타입 (인터페이스 선언에 의해)
+    let prev_processor;                                       // 이전 변환 프로세서
+    let prev = {                                              // 참조 전달을 위해 함께 결합
       prev_result, prev_type, prev_type2, prev_processor
     }
 
@@ -136,25 +136,25 @@ export class ABConvertManager {
   }
 
   /**
-   * autoABConvert的递归子函数
+   * autoABConvert의 재귀 하위 함수
    * @param el 
    * @param list_header 
-   * @param prev_result 上次转换后的结果
-   * @param prev_type   上次转换后的结果的类型 (类型检测而来, typeof类型)
-   * @param prev_type2  上次转换后的结果的类型 (接口声明而来, IOEnum类型)
-   * @returns           递归转换后的结果
+   * @param prev_result 이전 변환 결과
+   * @param prev_type   이전 변환 결과의 타입 (타입 검사에 의해, typeof 타입)
+   * @param prev_type2  이전 변환 결과의 타입 (인터페이스 선언에 의해, IOEnum 타입)
+   * @returns           재귀 변환 결과
    */
   private static autoABConvert_runConvert(el:HTMLDivElement, list_header:string[], prev:any):any{
-    // 循环header组，直到遍历完文本处理器或遇到渲染处理器
-    for (let item_header of list_header){ // TODO 因为可能被插入新的“中间自动转换器”，要么for替换成递归，要么都在头部预处理时弄完
+    // header 그룹을 순환하여 텍스트 프로세서가 모두 처리되거나 렌더링 프로세서가 발견될 때까지 반복
+    for (let item_header of list_header){ // TODO 중간 자동 변환기가 삽입될 수 있으므로, for를 재귀로 대체하거나 모두 헤더 전처리 시 완료해야 합니다.
       for (let abReplaceProcessor of ABConvertManager.getInstance().list_abConvert){
-        // 通过header寻找处理器
+        // header를 통해 프로세서 찾기
         if (typeof(abReplaceProcessor.match)=='string'){if (abReplaceProcessor.match!=item_header) continue}
         else {if (!abReplaceProcessor.match.test(item_header)) continue}
-        // TODO 删除旧的别名系统
-        // 检查是否有别名。若是，递归
+        // TODO 이전 별명 시스템 삭제
+        // 별명이 있는지 확인. 있다면 재귀
         if(abReplaceProcessor.process_alias){
-          // 别名支持引用正则参数
+          // 별명은 정규 표현식 매개변수를 참조할 수 있습니다.
           let alias = abReplaceProcessor.process_alias
           ;(()=>{
             if (abReplaceProcessor.process_alias.indexOf("%")<0) return
@@ -166,19 +166,19 @@ export class ABConvertManager {
             // replaceAlias
             for (let i=1; i<len; i++){
               if (!matchs[i]) continue
-              alias = alias.replace(RegExp(`%${i}`), matchs[i]) /** @bug 按理应该用`(?<!\\)%${i}`，但ob不支持正则的向前查找 */
+              alias = alias.replace(RegExp(`%${i}`), matchs[i]) /** @bug 원래는 `(?<!\\)%${i}`를 사용해야 하지만, ob는 정규 표현식의 전방 탐색을 지원하지 않습니다. */
             }
           })()
           prev.prev_result = this.autoABConvert_runConvert(el, alias.split("|"), prev)
         }
-        // 若不是，使用process方法
+        // 그렇지 않으면 process 메서드 사용
         else if(abReplaceProcessor.process){
-          // (1) 检查输入类型
+          // (1) 입력 타입 확인
           if (abReplaceProcessor.process_param != prev.prev_type2){
-            // TODO，两个自动处理器，后面要被别名系统替换掉
+            // TODO, 두 개의 자동 프로세서, 나중에 별명 시스템으로 대체되어야 합니다.
             if (abReplaceProcessor.process_param==ABConvert_IOEnum.el &&
               prev.prev_type2==ABConvert_IOEnum.text
-            ){ // 需要输入html，实际输入md，则插入一个md->html
+            ){ // html 입력이 필요하고 실제로는 md가 입력된 경우, md->html을 삽입합니다.
               const subEl: HTMLDivElement = document.createElement("div"); el.appendChild(subEl);
               ABConvertManager.getInstance().m_renderMarkdownFn(prev.prev_result, subEl);
               prev.prev_result = el
@@ -188,7 +188,7 @@ export class ABConvertManager {
             }
             else if (abReplaceProcessor.process_param==ABConvert_IOEnum.text &&
               (prev.prev_type2==ABConvert_IOEnum.list_strem || prev.prev_type2==ABConvert_IOEnum.c2list_strem)
-            ) { // 需要输入text，实际输入object，则插入一个object->text
+            ) { // text 입력이 필요하고 실제로는 object가 입력된 경우, object->text를 삽입합니다.
               prev.prev_result = JSON.stringify(prev.prev_result, null, 2)
               prev.prev_type = typeof(prev.prev_result)
               prev.prev_type2 = ABConvert_IOEnum.text
@@ -201,29 +201,29 @@ export class ABConvertManager {
               prev.prev_processor = "json to text"
             }
             else{
-              console.warn(`处理器输入类型错误, id:${abReplaceProcessor.id}, virtualParam:${abReplaceProcessor.process_param}, realParam:${prev.prev_type2}`);
+              console.warn(`프로세서 입력 타입 오류, id:${abReplaceProcessor.id}, virtualParam:${abReplaceProcessor.process_param}, realParam:${prev.prev_type2}`);
               break
             }
           }
 
-          // (2) 执行处理器
+          // (2) 프로세서 실행
           prev.prev_result = abReplaceProcessor.process(el, item_header, prev.prev_result)
           prev.prev_type = typeof(prev.prev_result)
           prev.prev_type2 = abReplaceProcessor.process_return as ABConvert_IOEnum
           prev.prev_processor = abReplaceProcessor.process
 
-          // (3) 检查输出类型
+          // (3) 출력 타입 확인
           // if(typeof(prev_result) == "string"){prev_type = ABConvert_IOEnum.text}
-          // 下行换成了下下行。因为下行在mdit/jsdom环境可能报错：Right-hand side of 'instanceof' is not callable
+          // 아래 줄은 아래 아래 줄로 대체되었습니다. 아래 줄은 mdit/jsdom 환경에서 오류를 발생시킬 수 있습니다: Right-hand side of 'instanceof' is not callable
           //else if (prev_result instanceof HTMLElement){prev_type = ABConvert_IOType.el}
           // else if (typeof(prev_result) == "object"){prev_type = ABConvert_IOEnum.el}
           // else {
-          //   console.warn(`处理器输出类型错误, id:${abReplaceProcessor.id}, virtualReturn:${abReplaceProcessor.process_return}, realReturn${prev_type}`);
+          //   console.warn(`프로세서 출력 타입 오류, id:${abReplaceProcessor.id}, virtualReturn:${abReplaceProcessor.process_return}, realReturn${prev_type}`);
           //   break
           // }
         }
         else{
-          console.warn("处理器必须实现process或process_alias方法")
+          console.warn("프로세서는 process 또는 process_alias 메서드를 구현해야 합니다.")
         }
       }
     }
@@ -231,23 +231,23 @@ export class ABConvertManager {
   }
 
   /**
-   * 子函数，后处理/尾处理，主要进行末尾追加指令
+   * 하위 함수, 후처리/꼬리 처리, 주로 끝에 명령 추가
    */
   private static autoABConvert_last (el:HTMLDivElement, header:string, selectorName:string, prev:any):any{
-    // text内容，则给一个md渲染器
+    // text 내용인 경우, md 렌더러를 제공합니다.
     if (prev.prev_type == "string" && prev.prev_type2 == ABConvert_IOEnum.text) {
       const subEl = document.createElement("div"); el.appendChild(subEl);
       ABConvertManager.getInstance().m_renderMarkdownFn(prev.prev_result as string, subEl);
       prev.prev_result = el; prev.prev_type = "object"; prev.prev_type2 = ABConvert_IOEnum.el; prev.process = "md";
     }
-    // json内容/数组内容，则用代码块表示
+    // json 내용/배열 내용인 경우, 코드 블록으로 표시
     else if (prev.prev_type == "string" && prev.prev_type2 == ABConvert_IOEnum.json) {
       const code_str:string = "```json\n" + prev.prev_result + "\n```\n"
       const subEl = document.createElement("div"); el.appendChild(subEl);
       ABConvertManager.getInstance().m_renderMarkdownFn(code_str, subEl);
       prev.prev_result = el; prev.prev_type = "object"; prev.prev_type2 = ABConvert_IOEnum.el; prev.process = "show_json";
     }
-    // 数组流，用代码块表示
+    // 배열 스트림, 코드 블록으로 표시
     else if (prev.prev_type == "object" &&
       (prev.prev_type2 == ABConvert_IOEnum.list_strem || prev.prev_type2 == ABConvert_IOEnum.c2list_strem || prev.prev_type2 == ABConvert_IOEnum.json)
     ) {
@@ -260,7 +260,7 @@ export class ABConvertManager {
       return prev
     }
     else {
-      console.warn("other type in tail, can not tail processor:", prev.prev_type, prev.prev_type2, prev.prev_result)
+      console.warn("꼬리에서 다른 타입, 꼬리 프로세서 불가:", prev.prev_type, prev.prev_type2, prev.prev_result)
     }
     return prev
   }

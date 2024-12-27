@@ -1,7 +1,7 @@
 /**
- * 处理器_特殊
+ * 처리기_특수
  * 
- * 这是一个demo: 教你如何写一个自己的转换器
+ * 이것은 데모입니다: 자신만의 변환기를 작성하는 방법을 가르쳐줍니다
  */
 
 import {ABConvert_IOEnum, ABConvert, type ABConvert_SpecSimp} from "./ABConvert"
@@ -22,12 +22,12 @@ const abc_faq = ABConvert.factory({
     let last_content:string = ""
     for (let line of list_content){
       const m_line = line.match(/^([a-zA-Z])(: |：)(.*)/)
-      if (!m_line){ // 不匹配
+      if (!m_line){ // 일치하지 않음
         if (mode_qa) {
           last_content = last_content + "\n" + line
         }
         continue
-      } else {      // 匹配
+      } else {      // 일치함
         if (mode_qa) {
           const e_faq_line = document.createElement("div"); e_faq.appendChild(e_faq_line); e_faq_line.classList.add("ab-faq-line", `ab-faq-${mode_qa}`);
           const e_faq_bubble = document.createElement("div"); e_faq_line.appendChild(e_faq_bubble); e_faq_bubble.classList.add("ab-faq-bubble", `ab-faq-${mode_qa}`);
@@ -38,7 +38,7 @@ const abc_faq = ABConvert.factory({
         last_content = m_line[3]
       }
     }
-    // 循环尾
+    // 루프 끝
     if (mode_qa) {
           const e_faq_line = document.createElement("div"); e_faq.appendChild(e_faq_line); e_faq_line.classList.add("ab-faq-line", `ab-faq-${mode_qa}`);
           const e_faq_bubble = document.createElement("div"); e_faq_line.appendChild(e_faq_bubble); e_faq_bubble.classList.add("ab-faq-bubble", `ab-faq-${mode_qa}`);
@@ -62,15 +62,15 @@ const abc_info = ABConvert.factory({
       const thead = document.createElement("thead"); table.appendChild(thead);
       const tr = document.createElement("tr"); thead.appendChild(tr);
       let th;
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "处理器名\nProcessor name";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "下拉框默认项\nThe default drop-down box";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "用途描述\nPurpose description";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "输入类型\nInput type";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "输出类型\nOutput type";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "正则\nRegExp";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "是否启用\nIs enable";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "定义来源\nSource";
-      th = document.createElement("th"); tr.appendChild(th); th.textContent = "别名替换\nAlias substitution";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "처리기 이름\nProcessor name";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "드롭다운 기본 항목\nThe default drop-down box";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "용도 설명\nPurpose description";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "입력 유형\nInput type";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "출력 유형\nOutput type";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "정규식\nRegExp";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "활성화 여부\nIs enable";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "정의 출처\nSource";
+      th = document.createElement("th"); tr.appendChild(th); th.textContent = "별명 대체\nAlias substitution";
     }
     const tbody = document.createElement("tbody"); table.appendChild(tbody);
     for (let item of ABConvertManager.getInstance().list_abConvert){
@@ -79,7 +79,7 @@ const abc_info = ABConvert.factory({
       td = document.createElement("td"); tr.appendChild(td); td.textContent = item.name;
       td = document.createElement("td"); tr.appendChild(td); td.textContent = String(item.default);
       td = document.createElement("td"); tr.appendChild(td); td.textContent = item.detail; td.setAttribute("style", "max-width:240px;overflow-x:auto;white-space:nowrap;");
-      // td = document.createElement("td"); tr.appendChild(td); td.textContent = item.is_render?"渲染":"文本";
+      // td = document.createElement("td"); tr.appendChild(td); td.textContent = item.is_render?"렌더링":"텍스트";
       td = document.createElement("td"); tr.appendChild(td); td.textContent = String(item.process_param);
       td = document.createElement("td"); tr.appendChild(td); td.textContent = String(item.process_return);
       td = document.createElement("td"); tr.appendChild(td); td.textContent = String(item.match);

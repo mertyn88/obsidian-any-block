@@ -1,7 +1,7 @@
 /**
- * Obsidian 的插件设置页面
+ * Obsidian의 플러그인 설정 페이지
  * 
- * TODO：设备Debug日志开关
+ * TODO: 디버그 로그 스위치
  */
 
 import {App, PluginSettingTab, Setting, Modal} from "obsidian"
@@ -15,29 +15,29 @@ import { ABCSetting } from "src/ABConverter/ABReg"
 import {} from "src/ab_manager/abm_cm/ABSelector_MdBase"
 import {generateSelectorInfoTable} from "src/ab_manager/abm_cm/ABSelector_Md"
 
-/** 设置值接口 */
+/** 설정 값 인터페이스 */
 export interface ABSettingInterface {
-  // 选择器模块部分
-  select_list: ConfSelect           // 是否启用list选择器
-  select_quote: ConfSelect          // 是否启用quote选择器
-  select_code: ConfSelect           // 是否启用code选择器
-  select_heading: ConfSelect        // 是否启用heading选择器
-  select_brace: ConfSelect          // 是否启用brace选择器
-  decoration_source: ConfDecoration // 是否在源码模式中启用
-  decoration_live: ConfDecoration   // 是否在实时模式中启用
-  decoration_render: ConfDecoration // 是否在阅读模式中启用
-  is_neg_level: boolean,            // 是否使用负标题标志 `<` (其实是还没做出来)
+  // 선택기 모듈 부분
+  select_list: ConfSelect           // 리스트 선택기 사용 여부
+  select_quote: ConfSelect          // 인용 선택기 사용 여부
+  select_code: ConfSelect           // 코드 선택기 사용 여부
+  select_heading: ConfSelect        // 헤딩 선택기 사용 여부
+  select_brace: ConfSelect          // 중괄호 선택기 사용 여부
+  decoration_source: ConfDecoration // 소스 모드에서 사용 여부
+  decoration_live: ConfDecoration   // 실시간 모드에서 사용 여부
+  decoration_render: ConfDecoration // 읽기 모드에서 사용 여부
+  is_neg_level: boolean,            // 부정 헤딩 플래그 `<` 사용 여부 (사실 아직 구현되지 않음)
 
-  // 别名模块部分
-  alias_use_default: true,              // 使用默认的别名预设 (可以为了性能优化而关掉)
-  alias_user: {                         // 别名系统 (V3.0.8提供)，用户定义的别名 (不包含自带的)
+  // 별명 모듈 부분
+  alias_use_default: true,              // 기본 별명 프리셋 사용 (성능 최적화를 위해 끌 수 있음)
+  alias_user: {                         // 별명 시스템 (V3.0.8 제공), 사용자가 정의한 별명 (기본 제공 제외)
     regex: string,
     replacement: string
   }[],
-  user_processor: ABConvert_SpecUser[],  // 别名系统 (旧)，用户自定义的别名处理器
+  user_processor: ABConvert_SpecUser[],  // 별명 시스템 (구버전), 사용자가 정의한 별명 프로세서
 
-  // 其他
-  is_debug: boolean                 // 是否开启调试打印
+  // 기타
+  is_debug: boolean                 // 디버그 출력 사용 여부
 }
 export enum ConfSelect{
   no = "no",
@@ -84,7 +84,7 @@ export const AB_SETTINGS: ABSettingInterface = {
   is_debug: false
 }
 
-/** 设置值面板 */
+/** 설정 값 패널 */
 export class ABSettingTab extends PluginSettingTab {
 	plugin: AnyBlockPlugin
   processorPanel: HTMLElement
@@ -94,18 +94,18 @@ export class ABSettingTab extends PluginSettingTab {
 		super(app, plugin);
 		this.plugin = plugin;
 
-    // Convert模块
+    // Convert 모듈
     ABCSetting.is_debug = this.plugin.settings.is_debug
 
-    // Alias模块，加载自定义别名
+    // Alias 모듈, 사용자 정의 별명 로드
     if (!plugin.settings.alias_use_default) {
-      ABAlias_json.length = 0 // 清空数组
+      ABAlias_json.length = 0 // 배열 비우기
     }
-    //   新版
+    //   신버전
     for (let item of plugin.settings.alias_user){
       let newReg: string|RegExp;
       if (/^\/.*\/$/.test(item.regex)) {
-        newReg = new RegExp(item.regex.slice(1,-1)) // 去除两侧的`/`并变回regExp
+        newReg = new RegExp(item.regex.slice(1,-1)) // 양쪽의 `/` 제거하고 regExp로 변환
       } else {
         newReg = item.regex
       }
@@ -114,7 +114,7 @@ export class ABSettingTab extends PluginSettingTab {
         replacement: item.replacement
       })
     }
-    //   旧版
+    //   구버전
     for (let item of plugin.settings.user_processor){
       ABConvert.factory(item)
     }
@@ -130,79 +130,32 @@ export class ABSettingTab extends PluginSettingTab {
     <a href="https://linczero.github.io/MdNote_Public/ProductDoc/AnyBlock/README.show.html">website</a>
     /
     <a href="https://github.com/LincZero/obsidian-any-block">github</a>
-    for more details (更多使用方法详见Github及网站)
+    for more details (더 많은 사용 방법은 Github 및 웹사이트 참조)
     `;
     containerEl.createEl('hr', {attr: {"style": "border-color:#9999ff"}})
 
-    // 选择器管理
-    containerEl.createEl('h2', {text: 'Selector Manager (选择器的管理)'});
-    containerEl.createEl('p', {text: 'This section is for query only and cannot be edited (这一部分仅供查询不可编辑)'})
+    // 선택기 관리
+    containerEl.createEl('h2', {text: 'Selector Manager (선택기 관리)'});
+    containerEl.createEl('p', {text: '이 섹션은 조회용이며 편집할 수 없습니다 (이 부분은 조회용으로만 제공되며 편집할 수 없습니다)'})
     this.selectorPanel = generateSelectorInfoTable(containerEl)
     containerEl.createEl('hr', {attr: {"style": "border-color:#9999ff"}})
 
-    // 装饰管理器
-    /*containerEl.createEl('h2', {text: '装饰管理器'});
+    // 별명 시스템 관리
+    containerEl.createEl('h2', {text: 'AliasSystem Manager (별명 시스템 관리)'});
+    containerEl.createEl('p', {text: '이 내용은 `[info_alias]` 프로세서를 사용하여 메인 페이지에서도 볼 수 있습니다 (이 부분은 `[info_alias]` 프로세서를 사용하여 메인 페이지에서도 볼 수 있습니다)'});
+    containerEl.createEl('p', {text: '이 섹션은 플러그인 폴더의 `data.json` 파일을 열어 수정할 수도 있습니다 (이 부분은 플러그인 폴더의 `data.json` 파일을 열어 수정할 수도 있습니다)'});
     new Setting(containerEl)
-      .setName('源码模式中启用')
-      .setDesc('推荐：不启用')
-			.addDropdown((component)=>{
-        component
-        .addOption(ConfDecoration.none, "不启用")
-        .addOption(ConfDecoration.inline, "仅启用线装饰")
-        .addOption(ConfDecoration.block, "启用块装饰")
-        .setValue(settings.decoration_source)
-        .onChange(async v=>{
-          // @ts-ignore 这里枚举必然包含v值的
-          settings.decoration_source = ConfDecoration[v]  
-          await this.plugin.saveSettings();    
-        })
-      })
-    new Setting(containerEl)
-      .setName('实时模式中启用')
-      .setDesc('推荐：启用块装饰/线装饰')
-			.addDropdown((component)=>{
-        component
-        .addOption(ConfDecoration.none, "不启用")
-        .addOption(ConfDecoration.inline, "仅启用线装饰")
-        .addOption(ConfDecoration.block, "启用块装饰")
-        .setValue(settings.decoration_live)
-        .onChange(async v=>{
-          // @ts-ignore 这里枚举必然包含v值的
-          settings.decoration_live = ConfDecoration[v]
-          await this.plugin.saveSettings(); 
-        })
-      })
-    new Setting(containerEl)
-      .setName('渲染模式中启用')
-      .setDesc('推荐：启用块装饰')
-			.addDropdown((component)=>{
-        component
-        .addOption(ConfDecoration.none, "不启用")
-        .addOption(ConfDecoration.block, "启用块装饰")
-        .setValue(settings.decoration_render)
-        .onChange(async v=>{
-          // @ts-ignore 这里枚举必然包含v值的
-          settings.decoration_render = ConfDecoration[v]    
-          await this.plugin.saveSettings(); 
-        })
-      })*/
-
-    // 别名系统的管理
-    containerEl.createEl('h2', {text: 'AliasSystem Manager (别名系统的管理)'});
-    containerEl.createEl('p', {text: 'It can also be viewed in the main page using the `[info_alias]` processor (这部分内容也可以使用 `[info_alias]` 处理器在主页面中查看)'});
-    containerEl.createEl('p', {text: 'This section can also be modified by opening the `data.json` file in the plugin folder (这部分也可以打开插件文件夹中的 `data.json` 文件修改)'});
-    new Setting(containerEl)
-      .setName('Add a new registration instruction')
-      .setDesc(`添加新的注册指令`)
+      .setName('새 등록 지침 추가')
+      .setDesc(`새로운 등록 지침 추가`)
       .addButton(component => {
         component
         .setIcon("plus-circle")
         .onClick(e => {
           new ABModal_alias(this.app, async (result)=>{
-            // 1. 保存到对象
+            // 1. 객체에 저장
             let newReg: string|RegExp;
             if (/^\/.*\/$/.test(result.regex)) {
-              newReg = new RegExp(result.regex.slice(1,-1)) // 去除两侧的`/`并变回regExp
+              newReg = new RegExp(result.regex.slice(1,-1)) // 양쪽의 `/` 제거하고 regExp로 변환
             } else {
               newReg = result.regex
             }
@@ -210,25 +163,25 @@ export class ABSettingTab extends PluginSettingTab {
               regex: newReg,
               replacement: result.replacement
             })
-            // 2. 保存到文件
+            // 2. 파일에 저장
             await this.plugin.saveSettings();
           }).open()
         })
       })
     new Setting(containerEl)
-      .setName('Add a new registration instruction (old, will not be used)')
-      .setDesc(`添加新的注册指令 - 旧版，将弃用`)
+      .setName('새 등록 지침 추가 (구버전, 사용되지 않음)')
+      .setDesc(`새로운 등록 지침 추가 - 구버전, 사용되지 않음`)
       .addButton(component => {
         component
         .setIcon("plus-circle")
         .onClick(e => {
           new ABProcessorModal(this.app, async (result)=>{
-            // 1. 保存到对象
+            // 1. 객체에 저장
             ABConvert.factory(result)
             settings.user_processor.push(result)
-            // 2. 保存到文件
+            // 2. 파일에 저장
             await this.plugin.saveSettings();
-            // 3. 刷新处理器的图表
+            // 3. 프로세서의 그래프 새로고침
             this.processorPanel.remove()
             const div = containerEl.createEl("div");
             ABConvertManager.autoABConvert(div, "info", "", "null_content")
@@ -238,10 +191,10 @@ export class ABSettingTab extends PluginSettingTab {
       })
     containerEl.createEl('hr', {attr: {"style": "border-color:#9999ff"}})
 
-    // 转换器的管理
-    containerEl.createEl('h2', {text: 'Convertor Manager (转换器的管理)'});
-    containerEl.createEl('p', {text: 'It can also be viewed in the main page using the `[info]` processor (这部分内容也可以使用 `[info]` 处理器在主页面中查看)'});
-    containerEl.createEl('p', {text: 'This section is for query only and cannot be edited (这一部分仅供查询不可编辑)'})
+    // 변환기 관리
+    containerEl.createEl('h2', {text: 'Convertor Manager (변환기 관리)'});
+    containerEl.createEl('p', {text: '이 내용은 `[info]` 프로세서를 사용하여 메인 페이지에서도 볼 수 있습니다 (이 부분은 `[info]` 프로세서를 사용하여 메인 페이지에서도 볼 수 있습니다)'});
+    containerEl.createEl('p', {text: '이 섹션은 조회용이며 편집할 수 없습니다 (이 부분은 조회용으로만 제공되며 편집할 수 없습니다)'})
     containerEl.createEl('p', {text: ''});
     const div = containerEl.createEl("div");
     ABConvertManager.autoABConvert(div, "info", "", "null_content") // this.processorPanel = ABConvertManager.getInstance().generateConvertInfoTable(containerEl)
@@ -267,13 +220,13 @@ class ABProcessorModal extends Modal {
     this.onSubmit = onSubmit
   }
 
-  onOpen() {	// onOpen() 方法在对话框打开时被调用，它负责创建对话框中的内容。想要获取更多信息，可以查阅 HTML elements。
+  onOpen() {	// onOpen() 메서드는 대화 상자가 열릴 때 호출되며, 대화 상자 내의 내용을 생성하는 역할을 합니다. 더 많은 정보를 원하시면 HTML elements를 참조하세요.
     let { contentEl } = this;
-    contentEl.setText("Custom processor (自定义处理器)");
+    contentEl.setText("Custom processor (사용자 정의 프로세서)");
     contentEl.createEl("p", {text: ""})
     new Setting(contentEl)
       .setName("ProcessorId")
-      .setDesc("处理器唯一id, 不与其他处理器冲突即可")
+      .setDesc("프로세서 고유 id, 다른 프로세서와 충돌하지 않으면 됨")
       .addText((text)=>{
         text.onChange((value) => {
           this.args.id = value
@@ -282,7 +235,7 @@ class ABProcessorModal extends Modal {
 
     new Setting(contentEl)
       .setName("ProcessorName")
-      .setDesc("注册器名，可以乱填，给自己看的")
+      .setDesc("등록기 이름, 자유롭게 입력 가능, 본인 확인용")
       .addText((text)=>{
         text.onChange((value) => {
         this.args.name = value
@@ -291,7 +244,7 @@ class ABProcessorModal extends Modal {
 
     new Setting(contentEl)
       .setName("Processor matching rule")
-      .setDesc("注册器匹配名 (用/包括起来则表示正则)")
+      .setDesc("등록기 매칭 이름 (정규 표현식으로 인식하려면 /로 감싸야 함)")
       .addText((text)=>{
         text.onChange((value) => {
         this.args.match = value
@@ -300,7 +253,7 @@ class ABProcessorModal extends Modal {
 
     new Setting(contentEl)
       .setName("Processor replacement")
-      .setDesc("注册器替换为 (用/包括起来则判断为正则)")
+      .setDesc("등록기 대체 (정규 표현식으로 인식하려면 /로 감싸야 함)")
       .addText((text)=>{
         text.onChange((value) => {
         this.args.process_alias = value
@@ -310,8 +263,8 @@ class ABProcessorModal extends Modal {
     new Setting(contentEl)
       .addButton(btn => {
         btn
-        .setButtonText("Submit (提交)")
-        .setCta() // 这个不知道什么意思
+        .setButtonText("Submit (제출)")
+        .setCta() // 이게 무슨 뜻인지 모르겠음
         .onClick(() => {
           if(this.args.id && this.args.name && this.args.match && this.args.process_alias){
             this.close();
@@ -321,7 +274,7 @@ class ABProcessorModal extends Modal {
       })
   }
 
-  onClose() {	// onClose() 方法在对话框被关闭时调用，它负责清理对话框所占用的资源。
+  onClose() {	// onClose() 메서드는 대화 상자가 닫힐 때 호출되며, 대화 상자가 차지한 리소스를 정리하는 역할을 합니다.
     let { contentEl } = this;
     contentEl.empty();
   }
@@ -343,13 +296,13 @@ class ABModal_alias extends Modal {
     this.onSubmit = onSubmit
   }
 
-  onOpen() {	// onOpen() 方法在对话框打开时被调用，它负责创建对话框中的内容。想要获取更多信息，可以查阅 HTML elements。
+  onOpen() {	// onOpen() 메서드는 대화 상자가 열릴 때 호출되며, 대화 상자 내의 내용을 생성하는 역할을 합니다. 더 많은 정보를 원하시면 HTML elements를 참조하세요.
     let { contentEl } = this;
-    contentEl.setText("Custom alias (自定义别名)");
+    contentEl.setText("Custom alias (사용자 정의 별명)");
     contentEl.createEl("p", {text: ""})
     new Setting(contentEl)
       .setName("Alias matching rule")
-      .setDesc("别名匹配规则 (若用/包括起来则表示正则)")
+      .setDesc("별명 매칭 규칙 (정규 표현식으로 인식하려면 /로 감싸야 함)")
       .addText((text)=>{
         text.onChange((value) => {
         this.args.regex = value
@@ -358,7 +311,7 @@ class ABModal_alias extends Modal {
 
     new Setting(contentEl)
       .setName("Alias replacement")
-      .setDesc("别名替换为")
+      .setDesc("별명 대체")
       .addText((text)=>{
         text.onChange((value) => {
         this.args.replacement = value
@@ -368,8 +321,8 @@ class ABModal_alias extends Modal {
     new Setting(contentEl)
       .addButton(btn => {
         btn
-        .setButtonText("Submit (提交)")
-        .setCta() // 这个不知道什么意思
+        .setButtonText("Submit (제출)")
+        .setCta() // 이게 무슨 뜻인지 모르겠음
         .onClick(() => {
           if(this.args.regex && this.args.replacement){
             this.close();
@@ -379,7 +332,7 @@ class ABModal_alias extends Modal {
       })
   }
 
-  onClose() {	// onClose() 方法在对话框被关闭时调用，它负责清理对话框所占用的资源。
+  onClose() {	// onClose() 메서드는 대화 상자가 닫힐 때 호출되며, 대화 상자가 차지한 리소스를 정리하는 역할을 합니다.
     let { contentEl } = this;
     contentEl.empty();
   }

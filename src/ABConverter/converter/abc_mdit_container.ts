@@ -1,5 +1,5 @@
 /**
- * AB转换器 - 仿 markdown-it-container 功能
+ * AB 변환기 - markdown-it-container 기능 모방
  */
 
 import {ABConvert_IOEnum, ABConvert, type ABConvert_SpecSimp} from "./ABConvert"
@@ -7,7 +7,7 @@ import {ABConvertManager} from "../ABConvertManager"
 import {C2ListProcess, type List_C2ListItem} from "./abc_c2list"
 import {ABReg} from "../ABReg"
 
-/// 按mdit-tabs的标准转化为二列列表数据
+/// mdit-tabs의 표준에 따라 이열 리스트 데이터로 변환
 function mditTabs2listdata(content:string, reg: RegExp): List_C2ListItem {
   let list_line = content.split("\n")
   let content_item: string = ""
@@ -31,7 +31,7 @@ function mditTabs2listdata(content:string, reg: RegExp): List_C2ListItem {
 
   return list_c2listItem
 
-  function add_current_content() { // 刷新写入缓存的尾调用
+  function add_current_content() { // 캐시된 내용을 새로고침하여 기록
     if (content_item.trim() == "") return
     list_c2listItem.push({
       content: content_item,
@@ -43,7 +43,7 @@ function mditTabs2listdata(content:string, reg: RegExp): List_C2ListItem {
 
 const abc_mditTabs = ABConvert.factory({
   id: "mditTabs",
-  name: "mdit标签页",
+  name: "mdit탭",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -55,7 +55,7 @@ const abc_mditTabs = ABConvert.factory({
 
 const abc_mditDemo = ABConvert.factory({
   id: "mditDemo",
-  name: "mdit展示对比",
+  name: "mdit전시 비교",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -67,7 +67,7 @@ const abc_mditDemo = ABConvert.factory({
 
 const abc_mditABDemo = ABConvert.factory({
   id: "mditABDemo",
-  name: "AnyBlock转用展示对比",
+  name: "AnyBlock 전용 전시 비교",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -78,13 +78,13 @@ const abc_mditABDemo = ABConvert.factory({
 })
 
 /**
- * 总结分栏方式：
- * 1. 根据标签分栏 (手动分栏)
- * 2. 指定分栏个数 (自动分栏)
+ * 요약 분할 방식：
+ * 1. 태그에 따라 분할 (수동 분할)
+ * 2. 분할 개수 지정 (자동 분할)
  */
 const abc_midt_co = ABConvert.factory({
   id: "mditCol",
-  name: "mdit分栏",
+  name: "mdit분할",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -97,7 +97,7 @@ const abc_midt_co = ABConvert.factory({
 
 const abc_midt_card = ABConvert.factory({
   id: "mditCard",
-  name: "mdit卡片",
+  name: "mdit카드",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{

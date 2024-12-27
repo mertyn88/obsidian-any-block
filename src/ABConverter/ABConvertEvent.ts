@@ -1,25 +1,25 @@
 /**
- * 一些AB块的后触发事件
+ * 일부 AB 블록의 후속 이벤트
  * 
  * @detail
- * 普通的AB块Dom结构生成后就不需要再动了，而有的AB块需要被完全渲染后再进行一些操作。
+ * 일반적인 AB 블록 Dom 구조는 생성 후 더 이상 변경할 필요가 없지만, 일부 AB 블록은 완전히 렌더링된 후 추가 작업이 필요합니다.
  * 
- * 这些操作统一注册在此处
+ * 이러한 작업은 이곳에 통합하여 등록됩니다.
  */
 
 import { MarkdownEditView } from "obsidian";
 
 /**
- * 一些AB块的后触发事件 - css加载完触发
+ * 일부 AB 블록의 후속 이벤트 - css 로드 완료 후 트리거
  * 
- * @param d 这里有两种可能：
- *   - 一是局部刷新，d就是局部的div，此时d必须是 `.ab-replace`，且满足预设结构
- *   - 二是全局刷新，当页面加载完成后会自动调一次，d就是document
+ * @param d 여기에는 두 가지 가능성이 있습니다:
+ *   - 하나는 부분 새로 고침으로, d는 부분 div입니다. 이 경우 d는 `.ab-replace`이어야 하며, 사전 설정된 구조를 충족해야 합니다.
+ *   - 두 번째는 전체 새로 고침으로, 페이지 로드 완료 후 자동으로 한 번 호출되며, d는 문서입니다.
  */
 export function abConvertEvent(d: Element|Document) {
-  // 超宽div事件 (仅obsidian)，这个事件应该优先处理
+  // 초광폭 div 이벤트 (오직 obsidian), 이 이벤트는 우선 처리되어야 합니다.
   if (d.querySelector('.ab-super-width')) {
-    // 局部 (仅obsidian)
+    // 부분 (오직 obsidian)
     const els_note: NodeListOf<Element> = d.querySelectorAll(".ab-note");
     for (const el_note of els_note) {
       if (el_note.querySelector(".ab-super-width")) {
@@ -29,19 +29,19 @@ export function abConvertEvent(d: Element|Document) {
         }
       }
     }
-    // 全局 (仅obsidian)，注意这里在docuemnt而非d上寻找
-    const els_view: NodeListOf<Element> = document.querySelectorAll(".app-container .workspace-leaf"); // 支持多窗口
+    // 전체 (오직 obsidian), 여기서는 document가 아닌 d에서 찾습니다.
+    const els_view: NodeListOf<Element> = document.querySelectorAll(".app-container .workspace-leaf"); // 다중 창 지원
     for (const el_view of els_view) {
-      (el_view as HTMLElement).style.setProperty('--ab-width-outer', ((el_view as HTMLElement).offsetWidth - 40).toString() + "px"); // 40/2是边距 (必须大于滚动条)
+      (el_view as HTMLElement).style.setProperty('--ab-width-outer', ((el_view as HTMLElement).offsetWidth - 40).toString() + "px"); // 40/2는 여백 (스크롤바보다 커야 함)
     }
   }
 
-  // list2nodes，圆弧调整事件
+  // list2nodes, 원호 조정 이벤트
   if (d.querySelector('.ab-nodes-node')) {
     const els_min = document.querySelectorAll(".ab-nodes.min .ab-nodes-node");
     const list_children = d.querySelectorAll(".ab-nodes-node")
     for (let children of list_children) {
-      // 元素准备
+      // 요소 준비
       const el_content = children.querySelector(".ab-nodes-content") as HTMLElement; if (!el_content) continue
       const el_child = children.querySelector(".ab-nodes-children") as HTMLElement; if (!el_child) continue
       const el_bracket = el_child.querySelector(".ab-nodes-bracket") as HTMLElement; if (!el_bracket) continue
@@ -57,62 +57,62 @@ export function abConvertEvent(d: Element|Document) {
       const el_child_first_content = el_child_first.querySelector(".ab-nodes-content") as HTMLElement
       const el_child_last_content = el_child_last.querySelector(".ab-nodes-content") as HTMLElement
 
-      // 参数准备
-      // 有两种情况，如果height非零则高度等于 (height) (通常1-1结构会是这种情况)，若无则高度等于 (100%-heightToReduce)
+      // 매개변수 준비
+      // 두 가지 경우가 있습니다. height가 0이 아닌 경우 높이는 (height)와 같고 (일반적으로 1-1 구조가 이 경우에 해당), 그렇지 않으면 높이는 (100%-heightToReduce)와 같습니다.
       let height = 0;
       let heightToReduce = (el_child_first.offsetHeight + el_child_last.offsetHeight) / 2;
 
-      // 修改伪类
-      if (els_child.length == 3) { // 结构：1-1
+      // 가상 클래스 수정
+      if (els_child.length == 3) { // 구조: 1-1
         height = (el_child_first_content.offsetHeight-20) > 20 ? (el_child_first_content.offsetHeight-20) : 20
         el_bracket2.style.cssText = `
           height: ${height}px;
           top: calc(50% - ${height/2}px);
         `
-      } else { // 结构：1-n
+      } else { // 구조: 1-n
         el_bracket2.style.cssText = `
           height: calc(100% - ${heightToReduce}px);
           top: ${el_child_first.offsetHeight/2}px;
         `
       }
 
-      // 修改伪类 - min样式版 (注意：不要因为用cssText覆盖而把样式给漏了)
+      // 가상 클래스 수정 - min 스타일 버전 (주의: cssText를 사용하여 덮어쓰면서 스타일을 누락하지 마세요)
       if (Array.prototype.includes.call(els_min, children)) {
-        if (els_child.length == 3) { // 结构：1-1，有圆点
+        if (els_child.length == 3) { // 구조: 1-1, 원점 있음
           el_bracket.style.cssText = `
             display: block;
             top: calc(50% + ${el_content.offsetHeight/2}px - 3px);
             clip-path: circle(40% at 50% 40%);
           `
-        } else { // 结构：1-n，无圆点，是延长线
+        } else { // 구조: 1-n, 원점 없음, 연장선
           el_bracket.setAttribute("display", "none")
           // el_bracket.style.cssText = `
           //   display: block;
           //   height: 1px;
           //   top: calc(50% + ${el_content.offsetHeight/2}px - 1px);
-          //   width: 18px; /* 可以溢出点 */
+          //   width: 18px; /* 약간 넘칠 수 있음 */
           //   left: -20px;
           //   border-bottom: 1px solid var(--node-color);
           //   clip-path: none;
           // `
         }
 
-        if (els_child.length == 3 && el_content.offsetHeight == el_child_first_content.offsetHeight) { // 结构：1-1且高度相同，则用横线代替括号
+        if (els_child.length == 3 && el_content.offsetHeight == el_child_first_content.offsetHeight) { // 구조: 1-1 및 높이가 동일한 경우, 괄호 대신 가로선을 사용
           el_bracket2.style.cssText = `
             height: 1px;
             top: calc(50% + ${el_content.offsetHeight/2}px - 1px);
-            width: 18px; /* 可以溢出点 */
+            width: 18px; /* 약간 넘칠 수 있음 */
             border-radius: 0;
             border: none;
             border-bottom: 1px solid var(--node-color);
           `
         }
-        else { // 否则在原有基础上微调即可
+        else { // 그렇지 않으면 기존 기초에 미세 조정
           // el_bracket2.style.setProperty("border-radius", "2px 0 0 2px")
           // if (height==0) {
-          //   el_bracket2.style.setProperty("height", `calc(100% - ${heightToReduce}px + 12px)`); // 原基础+12 (应该要加 el_child_last_content 的半高)
+          //   el_bracket2.style.setProperty("height", `calc(100% - ${heightToReduce}px + 12px)`); // 기존 기초+12 (el_child_last_content의 반 높이를 더해야 함)
           // } else {
-          //   el_bracket2.style.setProperty("height", `${height+10}px`); // 原基础+10
+          //   el_bracket2.style.setProperty("height", `${height+10}px`); // 기존 기초+10
           // }
           if (els_child.length == 3) {
             height = el_child_last_content.offsetHeight/2 - el_content.offsetHeight/2;
@@ -128,11 +128,11 @@ export function abConvertEvent(d: Element|Document) {
           el_bracket2.style.setProperty("width", "20px");
         }
 
-        // 下面的内容弃用。存在问题：用canvas的思路应该是不对的，应该参考mehrmaid用svg，还能包裹div
+        // 아래 내용은 사용하지 않습니다. 문제 존재: canvas의 아이디어는 잘못된 것 같고, mehrmaid를 참고하여 svg를 사용해야 하며, div를 감쌀 수 있습니다.
         /*else {
           el_bracket2.style.setProperty("height", `100%`);
           el_bracket2.style.setProperty("top", `0`);
-          el_bracket2.style.setProperty("width", `38px`); // 可以溢出点
+          el_bracket2.style.setProperty("width", `38px`); // 약간 넘칠 수 있음
           el_bracket2.style.setProperty("left", `-20px`);
           el_bracket.style.setProperty("display", "none");
 
@@ -145,18 +145,18 @@ export function abConvertEvent(d: Element|Document) {
             x: rect_bracket.right - rect_canvas.left,
             y: rect_bracket.bottom - rect_canvas.top
           };
-          for (let childNode of childNodes) { // TODO 应该跳过前两个，前两个是括号
+          for (let childNode of childNodes) { // TODO 앞의 두 개를 건너뛰어야 합니다. 앞의 두 개는 괄호입니다.
             const rect_childNode = (childNode as HTMLElement).getBoundingClientRect()
             const point_childNode = {
               x: rect_childNode.right - rect_canvas.left,
               y: rect_childNode.bottom - rect_canvas.top
             }
-            // 连线
+            // 연결선
             const ctx = el_canvas.getContext('2d');
             if (!ctx) continue;
-            console.log(".ab-nodes.min 获取 canvas ctx 成功", rect_canvas, rect_bracket, rect_childNode) // canvas和bracket是重合的其实……
-            // ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除画布
-            ctx.beginPath(); // 开始绘制连线
+            console.log(".ab-nodes.min canvas ctx 획득 성공", rect_canvas, rect_bracket, rect_childNode) // canvas와 bracket은 실제로 겹쳐져 있습니다...
+            // ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스 지우기
+            ctx.beginPath(); // 연결선 그리기 시작
             ctx.moveTo(point_bracket.x - point_bracket.x, point_bracket.y - point_bracket.x);
             ctx.lineTo(point_childNode.x - point_bracket.x, point_childNode.y - point_bracket.x);
             ctx.strokeStyle = 'green';
@@ -168,14 +168,14 @@ export function abConvertEvent(d: Element|Document) {
     }
   }
 
-  // list2card，瀑布流卡片顺序重调事件
+  // list2card, 폭포 흐름 카드 순서 재조정 이벤트
   if (d.querySelector('.ab-items.ab-card:not(.js-waterfall)')) {
     const root_el_list = d.querySelectorAll(".ab-items.ab-card:not(.js-waterfall)")
     for (let root_el of root_el_list) {
-      // 1. 准备原元素
-      root_el.classList.add("js-waterfall") // 避免：触发两次时，第二次触发会以第一次触发的顺序为基准，再进行调整
+      // 1. 원래 요소 준비
+      root_el.classList.add("js-waterfall") // 방지: 두 번 트리거될 때, 두 번째 트리거는 첫 번째 트리거의 순서를 기준으로 다시 조정됩니다.
       const list_children = root_el.querySelectorAll(".ab-items-item")
-      // 计算列数和列宽
+      // 열 수와 열 너비 계산
       const columnCountTmp = parseInt(window.getComputedStyle(root_el).getPropertyValue('column-count'))
       let columnCount: number;
       if (columnCountTmp && !isNaN(columnCountTmp) && columnCountTmp>0) {
@@ -190,15 +190,15 @@ export function abConvertEvent(d: Element|Document) {
       }
       // const columnWidth = root_el.clientWidth / columnCount;
 
-      // 2. 准备高度缓存、元素缓存
-      let height_cache:number[] = []; // 缓存每列的当前高度，每次将新元素添加到高度最底的列中
+      // 2. 높이 캐시, 요소 캐시 준비
+      let height_cache:number[] = []; // 각 열의 현재 높이를 캐시하여, 새 요소를 가장 낮은 열에 추가합니다.
       let el_cache:HTMLElement[][] = [];
       for (let i = 0; i < columnCount; i++) {
         height_cache.push(0);
         el_cache.push([])
       }
 
-      // 3. 得到顺序数组
+      // 3. 순서 배열 얻기
       for (let children of list_children) {
         const minValue: number =  Math.min.apply(null, height_cache);
         const minIndex: number =  height_cache.indexOf(minValue)
@@ -207,9 +207,9 @@ export function abConvertEvent(d: Element|Document) {
         el_cache[minIndex].push(children as HTMLElement)
       }
 
-      // 3.2. 修复特殊情况下的异常：
-      //    特殊情况指：当分N列时，若 (length%N != 0 || length%N != N-1)，存在问题
-      //    或写成这样好理解些：当 (length%(N-1) != N || length%(N-1) != N-1)，最后一列会缺好几个时，存在问题
+      // 3.2. 특수 상황에서의 예외 수정:
+      //    특수 상황은 N열로 나눌 때, (length%N != 0 || length%N != N-1)인 경우 문제가 발생합니다.
+      //    또는 이렇게 쓰면 이해하기 쉬울 수 있습니다: (length%(N-1) != N || length%(N-1) != N-1)인 경우, 마지막 열이 여러 개 부족할 때 문제가 발생합니다.
       const fillNumber = columnCount-list_children.length%columnCount
       if (fillNumber!=4) {
         for (let i=0; i<fillNumber; i++) {
@@ -221,7 +221,7 @@ export function abConvertEvent(d: Element|Document) {
         }
       }
 
-      // 4. 按顺序重新填入元素
+      // 4. 순서대로 요소 다시 채우기
       root_el.innerHTML = ""
       for (let i=0; i<columnCount; i++) {
         for (let j of el_cache[i]) {
@@ -231,7 +231,7 @@ export function abConvertEvent(d: Element|Document) {
     }
   }
 
-  // xxx2markmap，高度重调事件
+  // xxx2markmap, 높이 재조정 이벤트
   if (d.querySelector('.ab-markmap-div')) {
     const divEl = d as Element;
     let markmapId = '';
@@ -242,14 +242,14 @@ export function abConvertEvent(d: Element|Document) {
     if (markmapId) {
       mindmaps = document.querySelectorAll('#' + markmapId);
     } else {
-      mindmaps = document.querySelectorAll('.ab-markmap-div'); // 注意一下这里的选择器
+      mindmaps = document.querySelectorAll('.ab-markmap-div'); // 여기 선택자에 주의하세요.
     }
 
     for(const el_div of mindmaps) {
       const el_svg: SVGGraphicsElement|null = el_div.querySelector("svg")
       const el_g: SVGGraphicsElement|null|undefined = el_svg?.querySelector("g")
       if (el_svg && el_g) {
-        // 获取缩放倍数
+        // 확대 배율 얻기
         // const transformValue = el_g.getAttribute('transform');
         // if (transformValue && transformValue.indexOf('scale') > -1) {
         //   const scaleMatch = transformValue.match(/scale\(([^)]+)\)/);
@@ -259,19 +259,19 @@ export function abConvertEvent(d: Element|Document) {
         //   }
         // }
         const scale_new = el_g.getBBox().height/el_div.offsetWidth;
-        el_svg.setAttribute("style", `height:${el_g.getBBox().height*scale_new+40}px`); // 重调容器大小
-        // el_g.setAttribute("transform", `translate(20.0,80.0) scale(${scale_new})`) // 重调位置和缩放
-        markmap_event(d) // 好像调位置有问题，只能重渲染了……
+        el_svg.setAttribute("style", `height:${el_g.getBBox().height*scale_new+40}px`); // 컨테이너 크기 재조정
+        // el_g.setAttribute("transform", `translate(20.0,80.0) scale(${scale_new})`) // 위치 및 확대 재조정
+        markmap_event(d) // 위치 조정에 문제가 있는 것 같아, 다시 렌더링해야 합니다...
       }
     }
   }
 }
 
 /**
- * 一些AB块的后触发事件 - dom加载完触发 - markmap
+ * 일부 AB 블록의 후속 이벤트 - dom 로드 완료 후 트리거 - markmap
  */
 export function markmap_event(d: Element|Document) {
-  // xxx2markmap，渲染事件
+  // xxx2markmap, 렌더링 이벤트
   if (d.querySelector('.ab-markmap-svg')) {
     console.log("  - markmap_event")
     let script_el: HTMLScriptElement|null = document.querySelector('script[script-id="ab-markmap-script"]');
@@ -291,7 +291,7 @@ export function markmap_event(d: Element|Document) {
     if (markmapId) {
       mindmaps = document.querySelectorAll('#' + markmapId);
     } else {
-      mindmaps = document.querySelectorAll('.ab-markmap-svg'); // 注意一下这里的选择器
+      mindmaps = document.querySelectorAll('.ab-markmap-svg'); // 여기 선택자에 주의하세요.
     }
     for(const mindmap of mindmaps) {
       mindmap.innerHTML = "";

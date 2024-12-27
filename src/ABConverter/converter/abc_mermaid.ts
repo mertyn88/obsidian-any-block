@@ -1,9 +1,9 @@
 /**
- * AB转换器 - mermaid相关
+ * AB 변환기 - mermaid 관련
  * 
- * (可选) 参考：在Ob插件中增加7.1MB
+ * (선택 사항) 참고: Ob 플러그인에 7.1MB 추가
  * 
- * 使用注意项：在ob/mdit中的写法不同，本文件搜索render_mermaidText函数。里面有三种策略。ob推荐策略1，mdit推荐策略3
+ * 사용 주의 사항: ob/mdit에서의 작성법이 다릅니다. 이 파일에서 render_mermaidText 함수를 검색하세요. 세 가지 전략이 있습니다. ob는 전략 1을 추천하고, mdit는 전략 3을 추천합니다.
  */
 
 import {ABConvert_IOEnum, ABConvert, type ABConvert_SpecSimp} from "./ABConvert"
@@ -11,7 +11,7 @@ import {ABConvertManager} from "../ABConvertManager"
 import {ListProcess, type List_ListItem} from "./abc_list"
 import {ABReg} from "../ABReg"
 
-// mermaid相关 - 要在这里自己渲才需要
+// mermaid 관련 - 여기서 직접 렌더링해야 합니다.
 import mermaid from "mermaid"
 import mindmap from '@mermaid-js/mermaid-mindmap';
 const initialize = mermaid.registerExternalDiagrams([mindmap]);
@@ -20,18 +20,18 @@ export const mermaid_init = async () => {
 };
 
 /**
- * 生成一个随机id
+ * 랜덤 id 생성
  * 
- * @detail 因为mermaid渲染块时需要一个id，不然多个mermaid块会发生冲突
+ * @detail mermaid 렌더링 블록에는 id가 필요합니다. 그렇지 않으면 여러 mermaid 블록이 충돌할 수 있습니다.
  */
 function getID(length=16){
   return Number(Math.random().toString().substr(3,length) + Date.now()).toString(36);
 }
 
-// 纯组合，后续用别名模块替代
+// 순수 조합, 이후 별칭 모듈로 대체 예정
 const abc_title2mindmap = ABConvert.factory({
   id: "title2mindmap",
-  name: "标题到脑图",
+  name: "제목에서 마인드맵으로",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: async (el, header, content: string): Promise<HTMLElement>=>{
@@ -41,10 +41,10 @@ const abc_title2mindmap = ABConvert.factory({
   }
 })
 
-// 纯组合，后续用别名模块替代
+// 순수 조합, 이후 별칭 모듈로 대체 예정
 const abc_list2mindmap = ABConvert.factory({
   id: "list2mindmap",
-  name: "列表转mermaid思维导图",
+  name: "리스트를 mermaid 마인드맵으로 변환",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: async (el, header, content: string): Promise<HTMLElement>=>{
@@ -56,7 +56,7 @@ const abc_list2mindmap = ABConvert.factory({
 
 const abc_list2mermaid = ABConvert.factory({
   id: "list2mermaid",
-  name: "列表转mermaid流程图",
+  name: "리스트를 mermaid 플로우차트로 변환",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -67,10 +67,10 @@ const abc_list2mermaid = ABConvert.factory({
 
 const abc_mermaid = ABConvert.factory({
   id: "mermaid",
-  name: "新mermaid",
+  name: "새로운 mermaid",
   match: /^mermaid(\((.*)\))?$/,
   default: "mermaid(graph TB)",
-  detail: "由于需要兼容脑图，这里会使用插件内置的最新版mermaid",
+  detail: "마인드맵과의 호환성을 위해, 여기서는 플러그인에 내장된 최신 버전의 mermaid를 사용합니다.",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: async (el, header, content: string): Promise<HTMLElement>=>{
@@ -84,40 +84,40 @@ const abc_mermaid = ABConvert.factory({
 
 // ----------- list and mermaid ------------
 
-/** 列表转mermaid流程图 */
+/** 리스트를 mermaid 플로우차트로 변환 */
 function list2mermaid(text: string, div: HTMLDivElement) {
   let list_itemInfo = ListProcess.list2data(text)
   let mermaidText = data2mermaidText(list_itemInfo)
   return render_mermaidText(mermaidText, div)
 }
 
-/** 列表数据转mermaid流程图
- * ~~@bug 旧版bug（未内置mermaid）会闪一下~~ 
- * 然后注意一下mermaid的(项)不能有空格，或非法字符。空格我处理掉了，字符我先不管。算了，还是不处理空格吧
+/** 리스트 데이터를 mermaid 플로우차트로 변환
+ * ~~@bug 구버전 버그(내장된 mermaid 없음)로 인해 깜빡임 발생~~ 
+ * 그리고 mermaid의 (항목)에는 공백이나 잘못된 문자가 없어야 합니다. 공백은 처리했지만, 문자는 처리하지 않았습니다. 아니, 공백도 처리하지 않겠습니다.
  */
 function data2mermaidText(
   list_itemInfo: List_ListItem
 ){
-  const html_mode = false    // @todo 暂时没有设置来切换这个开关
+  const html_mode = false    // @todo 이 스위치를 전환할 설정은 아직 없습니다.
 
   let list_line_content:string[] = ["graph LR"]
   // let list_line_content:string[] = html_mode?['<pre class="mermaid">', "graph LR"]:["```mermaid", "graph LR"]
   let prev_line_content = ""
   let prev_level = 999
   for (let i=0; i<list_itemInfo.length; i++){
-    if (list_itemInfo[i].level>prev_level){ // 向右正常加箭头
+    if (list_itemInfo[i].level>prev_level){ // 오른쪽으로 정상적으로 화살표 추가
       prev_line_content = prev_line_content+" --> "+list_itemInfo[i].content//.replace(/ /g, "_")
-    } else {                                // 换行，并……
+    } else {                                // 줄 바꿈, 그리고……
       list_line_content.push(prev_line_content)
       prev_line_content = ""
 
-      for (let j=i; j>=0; j--){             // 回退到上一个比自己大的
+      for (let j=i; j>=0; j--){             // 자신보다 큰 항목으로 돌아감
         if(list_itemInfo[j].level<list_itemInfo[i].level) {
           prev_line_content = list_itemInfo[j].content//.replace(/ /g, "_")
           break
         }
       }
-      if (prev_line_content) prev_line_content=prev_line_content+" --> "  // 如果有比自己大的
+      if (prev_line_content) prev_line_content=prev_line_content+" --> "  // 자신보다 큰 항목이 있는 경우
       prev_line_content=prev_line_content+list_itemInfo[i].content//.replace(/ /g, "_")
     }
     prev_level = list_itemInfo[i].level
@@ -129,7 +129,7 @@ function data2mermaidText(
   return text
 }
 
-/** 列表数据转mermaid思维导图 */
+/** 리스트 데이터를 mermaid 마인드맵으로 변환 */
 async function data2mindmap(
   list_itemInfo: List_ListItem, 
   div: HTMLDivElement
@@ -140,7 +140,7 @@ async function data2mindmap(
 
   let list_newcontent:string[] = []
   for (let item of list_itemInfo){
-    // 等级转缩进，以及"\n" 转化 <br/>
+    // 레벨을 들여쓰기로 변환하고, "\n"을 <br/>로 변환
     let str_indent = ""
     for(let i=0; i<item.level; i++) str_indent+= " "
     list_newcontent.push(str_indent+item.content.replace("\n","<br/>"))
@@ -149,35 +149,35 @@ async function data2mindmap(
   return render_mermaidText(mermaidText, div)
 }
 
-// 通过mermaid块里的内容来渲染mermaid块
+// mermaid 블록의 내용을 통해 mermaid 블록을 렌더링
 async function render_mermaidText(mermaidText: string, div: HTMLElement) {
-  // 1. 四选一。自己渲
-  // full-ob使用
-  // - 优点: 最快，无需通过二次转换
-  // - 缺点: abc模块要内置mermaid，旧版插件使用是因为当时的obsidian内置的mermaid版本太老了
-  // - 选用：目前的ob环境中用是最好。vuepress-mdit中则有另一个bug，DOMPurify丢失：https://github.com/mermaid-js/mermaid/issues/5204
-  // - 补充：废弃函数：mermaid.mermaidAPI.renderAsync("ab-mermaid-"+getID(), mermaidText, (svgCode:string)=>{ div.innerHTML = svgCode })
+  // 1. 네 가지 중 하나. 직접 렌더링
+  // full-ob 사용
+  // - 장점: 가장 빠름, 이중 변환 불필요
+  // - 단점: abc 모듈에 mermaid를 내장해야 함, 구버전 플러그인은 당시의 obsidian 내장 mermaid 버전이 너무 오래되어 사용
+  // - 선택: 현재 ob 환경에서 사용하기에 가장 좋음. vuepress-mdit에서는 다른 버그가 있음, DOMPurify 손실: https://github.com/mermaid-js/mermaid/issues/5204
+  // - 보충: 폐기된 함수: mermaid.mermaidAPI.renderAsync("ab-mermaid-"+getID(), mermaidText, (svgCode:string)=>{ div.innerHTML = svgCode })
   const { svg } = await mermaid.render("ab-mermaid-"+getID(), mermaidText)
   div.innerHTML = svg
 
-  // 2. 四选一。在这里给环境渲
-  // - 优点：abc模块无需重复内置mermaid
-  // - 缺点：在ob里中，一个mermaid块的变更会导致所在页面内的所有mermaid一起变更，在mdit里似乎id会有问题
-  // min-ob使用
+  // 2. 네 가지 중 하나. 여기서 환경에 맞게 렌더링
+  // - 장점: abc 모듈에 mermaid를 반복 내장할 필요 없음
+  // - 단점: ob에서는 하나의 mermaid 블록 변경이 페이지 내 모든 mermaid를 함께 변경, mdit에서는 id에 문제가 있는 듯
+  // min-ob 사용
   // ABConvertManager.getInstance().m_renderMarkdownFn("```mermaid\n"+mermaidText+"\n```", div)
 
-  // 3. 四选一。这里不渲，交给上一层让上一层渲
-  // 当前mdit选用
-  // - 优点：abc模块无需重复内置mermaid。对于mdit，能避免输出格式必须为html
-  // - 缺点：这和ab的接口设计是冲突的，属于是取巧临时使用，后面要规范一下。另一方面，不知道为什么这种方案容易爆内存 (markmap那边也这样用也没事，就mermaid这边会)
-  // - 选用：mdit可以用这种，dev环境的最佳策略
+  // 3. 네 가지 중 하나. 여기서 렌더링하지 않고 상위 레이어에 맡김
+  // 현재 mdit 선택
+  // - 장점: abc 모듈에 mermaid를 반복 내장할 필요 없음. mdit에서는 출력 형식이 반드시 html일 필요가 없음
+  // - 단점: ab의 인터페이스 설계와 충돌, 임시로 사용, 후에 규범화 필요. 다른 한편으로는 이 방법이 메모리 폭발을 일으키는 이유를 모름 (markmap도 이렇게 사용해도 문제 없음, mermaid만 문제)
+  // - 선택: mdit에서 사용 가능, dev 환경의 최적 전략
   // div.classList.add("ab-raw")
   // div.innerHTML = `<div class="ab-raw-data" type-data="mermaid" content-data='${mermaidText}'></div>`
 
-  // 4. 四选一。纯动态/手动渲染
-  // - 优点：abc模块无需重复内置mermaid
-  // - 缺点：是不由ab转换的mermaid块自己不管，转换可能有延迟，还要手动触发
-  // - 选用：都可以用这种，虽然效果不太好，但省内存。方案3不知道为什么，会爆内存
+  // 4. 네 가지 중 하나. 순수 동적/수동 렌더링
+  // - 장점: abc 모듈에 mermaid를 반복 내장할 필요 없음
+  // - 단점: ab 변환이 아닌 mermaid 블록은 스스로 관리하지 않음, 변환에 지연이 있을 수 있으며 수동으로 트리거해야 함
+  // - 선택: 모두 사용 가능, 효과는 좋지 않지만 메모리를 절약. 방법 3은 이유를 모르겠지만 메모리 폭발을 일으킴
   // const div_btn = document.createElement("button"); div.appendChild(div_btn); div_btn.textContent = "ChickMe ReRender Mermaid";
   // div_btn.setAttribute("style", "background-color: argb(255, 125, 125, 0.5)");
   // div_btn.setAttribute("onclick", `

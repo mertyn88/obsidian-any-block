@@ -1,5 +1,5 @@
 /**
- * 转换器_目录树
+ * 변환기_디렉토리 트리
  * 
  * md_str <-> md_str
  * md_str <-> html
@@ -13,7 +13,7 @@ import plantumlEncoder from "plantuml-encoder"
 
 const abc_list2jsontext = ABConvert.factory({
   id: "json2pumlJson",
-  name: "json到可视化",
+  name: "json에서 시각화로",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -25,7 +25,7 @@ const abc_list2jsontext = ABConvert.factory({
 
 const abc_list2pumlWBS = ABConvert.factory({
   id: "list2pumlWBS",
-  name: "列表到puml工作分解结构",
+  name: "목록에서 puml 작업 분해 구조로",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -47,7 +47,7 @@ const abc_list2pumlWBS = ABConvert.factory({
 
 const abc_list2pumlMindmap = ABConvert.factory({
   id: "list2pumlMindmap",
-  name: "列表到puml思维导图",
+  name: "목록에서 puml 마인드맵으로",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -65,20 +65,20 @@ const abc_list2pumlMindmap = ABConvert.factory({
 })
 
 async function render_pumlText(text: string, div: HTMLElement) {
-    // 1. 四选一。自己渲 (优缺点见abc_mermaid的相似方法)
-    // 当前mdit和ob使用
+    // 1. 네 가지 중 하나 선택. 직접 렌더링 (장단점은 abc_mermaid의 유사한 방법 참조)
+    // 현재 mdit와 ob 사용
     var encoded = plantumlEncoder.encode(text)
     let url = 'http://www.plantuml.com/plantuml/img/' + encoded
     div.innerHTML = `<img src="${url}">`
 
-    // 2. 四选一。这里给环境渲染 (优缺点见abc_mermaid的相似方法)
+    // 2. 네 가지 중 하나 선택. 여기서 환경 렌더링 (장단점은 abc_mermaid의 유사한 방법 참조)
     //ABConvertManager.getInstance().m_renderMarkdownFn("```plantuml\n"+text+"```", div)
 
-    // 3. 四选一。这里不渲，交给上一层让上一层渲 (优缺点见abc_mermaid的相似方法)
+    // 3. 네 가지 중 하나 선택. 여기서 렌더링하지 않고 상위 레이어에 맡김 (장단점은 abc_mermaid의 유사한 방법 참조)
     //div.classList.add("ab-raw")
     //div.innerHTML = `<div class="ab-raw-data" type-data="plantuml" content-data='${text}'></div>`
 
-    // 4. 四选一。纯动态/手动渲染 (优缺点见abc_mermaid的相似方法)
+    // 4. 네 가지 중 하나 선택. 순수 동적/수동 렌더링 (장단점은 abc_mermaid의 유사한 방법 참조)
     // ...
 
     return div

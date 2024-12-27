@@ -1,5 +1,5 @@
 /**
- * 处理器_装饰版
+ * 처리기_데코레이터 버전
  * 
  * html <-> html
  * md_str <-> html
@@ -8,7 +8,7 @@
 import {ABConvert_IOEnum, ABConvert, type ABConvert_SpecSimp} from "./ABConvert"
 import {ABConvertManager} from "../ABConvertManager"
 
-export const DECOProcessor = 0  // 用于模块化，防报错，其实没啥用
+export const DECOProcessor = 0  // 모듈화를 위해 사용, 오류 방지용, 사실 별로 쓸모 없음
 
 const abc_md = ABConvert.factory({
   id: "md",
@@ -24,13 +24,12 @@ const abc_md = ABConvert.factory({
 
 const abc_text = ABConvert.factory({
   id: "text",
-  name: "纯文本",
-  detail: "其实一般会更推荐用code()代替，那个更精确",
+  name: "순수 텍스트",
+  detail: "사실 일반적으로 code()를 사용하는 것이 더 정확함",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
-    // 文本元素。pre不好用，这里还是得用<br>换行最好
-    // `<p>${content.split("\n").map(line=>{return "<span>"+line+"</span>"}).join("<br/>")}</p>`
+    // 텍스트 요소. pre는 사용하기 불편하여 여기서는 <br>로 줄바꿈하는 것이 가장 좋음
     el.innerHTML = `<p>${content.replace(/ /g, "&nbsp;").split("\n").join("<br/>")}</p>`
     return el
   }
@@ -38,7 +37,7 @@ const abc_text = ABConvert.factory({
 
 const abc_fold = ABConvert.factory({
   id: "fold",
-  name: "折叠",
+  name: "접기",
   process_param: ABConvert_IOEnum.el,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: HTMLElement): HTMLElement=>{
@@ -49,18 +48,18 @@ const abc_fold = ABConvert.factory({
     sub_el.classList.add("ab-deco-fold-content")
     sub_el.style.display = "none"
     const mid_el = document.createElement("div"); content.appendChild(mid_el); mid_el.classList.add("ab-deco-fold");
-    const sub_button = document.createElement("div"); mid_el.appendChild(sub_button); sub_button.classList.add("ab-deco-fold-button"); sub_button.textContent = "展开";
+    const sub_button = document.createElement("div"); mid_el.appendChild(sub_button); sub_button.classList.add("ab-deco-fold-button"); sub_button.textContent = "펼치기";
     sub_button.onclick = ()=>{
       const is_hide = sub_el.getAttribute("is_hide")
       if (is_hide && is_hide=="false") {
         sub_el.setAttribute("is_hide", "true"); 
         sub_el.style.display = "none"
-        sub_button.textContent = "展开"
+        sub_button.textContent = "펼치기"
       }
       else if(is_hide && is_hide=="true") {
         sub_el.setAttribute("is_hide", "false");
         sub_el.style.display = ""
-        sub_button.textContent = "折叠"
+        sub_button.textContent = "접기"
       }
     }
     mid_el.appendChild(sub_button)
@@ -72,23 +71,23 @@ const abc_fold = ABConvert.factory({
 
 const abc_scroll = ABConvert.factory({
   id: "scroll",
-  name: "滚动",
+  name: "스크롤",
   match: /^scroll(\((\d+)\))?(T)?$/,
   default: "scroll(460)",
   process_param: ABConvert_IOEnum.el,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: HTMLElement): HTMLElement=>{
-    // 找参数
+    // 매개변수 찾기
     const matchs = header.match(/^scroll(\((\d+)\))?(T)?$/)
     if (!matchs) return content
     let arg1
-    if (!matchs[1]) arg1=460  // 默认值
+    if (!matchs[1]) arg1=460  // 기본값
     else{
       if (!matchs[2]) return content
       arg1 = Number(matchs[2])
       if (isNaN(arg1)) return content
     }
-    // 修改元素
+    // 요소 수정
     if(content.children.length!=1) return content
     const sub_el = content.children[0]
     sub_el.remove()
@@ -106,28 +105,28 @@ const abc_scroll = ABConvert.factory({
 
 const abc_overfold = ABConvert.factory({
   id: "overfold",
-  name: "超出折叠",
+  name: "초과 접기",
   match: /^overfold(\((\d+)\))?$/,
   default: "overfold(380)",
   process_param: ABConvert_IOEnum.el,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: HTMLElement): HTMLElement=>{
-    // 找参数
+    // 매개변수 찾기
     const matchs = header.match(/^overfold(\((\d+)\))?$/)
     if (!matchs) return content
     let arg1:number
-    if (!matchs[1]) arg1=460  // 默认值
+    if (!matchs[1]) arg1=460  // 기본값
     else{
       if (!matchs[2]) return content
       arg1 = Number(matchs[2])
       if (isNaN(arg1)) return content
     }
-    // 修改元素
+    // 요소 수정
     if(content.children.length!=1) return content
     const sub_el = content.children[0]
     sub_el.remove()
     const mid_el = document.createElement("div"); content.appendChild(mid_el); mid_el.classList.add("ab-deco-overfold");
-    const sub_button = document.createElement("div"); mid_el.appendChild(sub_button); sub_button.classList.add("ab-deco-overfold-button"); sub_button.textContent = "展开";
+    const sub_button = document.createElement("div"); mid_el.appendChild(sub_button); sub_button.classList.add("ab-deco-overfold-button"); sub_button.textContent = "펼치기";
     sub_el.classList.add("ab-deco-overfold-content")
     mid_el.appendChild(sub_el)
     mid_el.appendChild(sub_button)
@@ -140,12 +139,12 @@ const abc_overfold = ABConvert.factory({
       if (is_fold=="true") {
         mid_el.setAttribute("style", "")
         mid_el.setAttribute("is-fold", "false")
-        sub_button.textContent = "折叠"
+        sub_button.textContent = "접기"
       }
       else{
         mid_el.setAttribute("style", `max-height: ${arg1}px`)
         mid_el.setAttribute("is-fold", "true")
-        sub_button.textContent = "展开"
+        sub_button.textContent = "펼치기"
       }
     }
 
@@ -153,13 +152,13 @@ const abc_overfold = ABConvert.factory({
   }
 })
 
-  // 可以匹配如:
+  // 다음과 같이 매칭 가능:
   // width(25%,25%,50%)
   // width(100px,10rem,10.5) 
   // width(100)
   const abc_width = ABConvert.factory({
     id: "width",
-    name: "宽度控制",
+    name: "너비 제어",
     match: /^width\(((?:\d*\.?\d+(?:%|px|rem)?,\s*)*\d*\.?\d+(?:%|px|rem)?)\)$/,
     process_param: ABConvert_IOEnum.el,
     process_return: ABConvert_IOEnum.el,
@@ -167,17 +166,17 @@ const abc_overfold = ABConvert.factory({
       const matchs = header.match(/^width\(((?:\d*\.?\d+(?:%|px|rem)?,\s*)*\d*\.?\d+(?:%|px|rem)?)\)$/)
       if (!matchs || content.children.length!=1) return content
   
-      // 支持 % 和 px 两种单位，默认单位是 px
+      // %와 px 두 가지 단위를 지원하며, 기본 단위는 px
       const args = matchs[1].split(",").map(arg => 
         /^\d*\.?\d+$/.test(arg.trim()) ? `${arg.trim()}%` : arg.trim()
       )
-      // 检查容器是否包含需要处理的类名, 根据不同的容器, 处理方式不同
+      // 컨테이너가 처리해야 할 클래스 이름을 포함하고 있는지 확인하고, 다른 컨테이너에 따라 처리 방식이 다름
       switch(true){
-        // ab-col支持渲染混合单位参数
+        // ab-col은 혼합 단위 매개변수 렌더링을 지원
         case content.children[0].classList.contains('ab-col'): {
           const sub_els = content.children[0].children
           if(sub_els.length==0) return content
-          // 允许参数数量与分栏数量不一致，多的部分会被忽略 
+          // 매개변수 수와 열 수가 일치하지 않아도 허용, 초과 부분은 무시됨 
           for(let i=0;i<Math.min(sub_els.length, args.length);i++){
             const sub_el = sub_els[i] as HTMLElement
             if(args[i].endsWith("%")) sub_el.style.flex = `0 1 ${args[i]}`
@@ -189,16 +188,16 @@ const abc_overfold = ABConvert.factory({
           return content
         }
         /**
-         * table目前无法很好渲染混合单位的参数（px和rem可以混合)
-         * 用settimeout延迟获取table宽度可解决，但是会延长渲染时间
-         * 可以尝试改用grid布局
+         * table은 현재 혼합 단위 매개변수를 잘 렌더링할 수 없음 (px와 rem은 혼합 가능)
+         * settimeout으로 테이블 너비를 지연하여 가져오면 해결 가능하지만, 렌더링 시간이 길어짐
+         * grid 레이아웃으로 변경 시도 가능
          */
-        // 使用非百分比单位尽量保证参数数量与列数一致，使用百分比单位表格会被按比例拉伸到行宽
+        // 비율 단위를 사용하면 매개변수 수와 열 수가 일치하도록 하는 것이 좋으며, 비율 단위를 사용하면 테이블이 행 너비에 맞게 비율로 늘어남
         case content.children[0].querySelector('table') !== null: {
           const table = content.children[0].querySelector('table')
           if (!table) return content
           table.style.tableLayout = 'fixed'
-          // 检查是否存在 % 单位的参数，使用100%，否则使用fit-content
+          // % 단위의 매개변수가 있는지 확인하고, 100%를 사용하고, 그렇지 않으면 fit-content를 사용
           table.style.width = args.some(arg => arg.endsWith('%')) ? '100%' : 'fit-content'
           // setTimeout(() => {
           //   console.log('Table width:', table.offsetWidth);
@@ -220,8 +219,8 @@ const abc_overfold = ABConvert.factory({
 
 const abc_addClass = ABConvert.factory({
   id: "addClass",
-  name: "增加class",
-  detail: "给当前块增加一个类名",
+  name: "클래스 추가",
+  detail: "현재 블록에 클래스 이름 추가",
   match: /^addClass\((.*)\)$/,
   process_param: ABConvert_IOEnum.el,
   process_return: ABConvert_IOEnum.el,
@@ -237,8 +236,8 @@ const abc_addClass = ABConvert.factory({
 
 const abc_addDiv = ABConvert.factory({
   id: "addDiv",
-  name: "增加div和class",
-  detail: "给当前块增加一个父类，需要给这个父类一个类名",
+  name: "div와 클래스 추가",
+  detail: "현재 블록에 부모 클래스를 추가하며, 이 부모 클래스에 클래스 이름을 부여해야 함",
   match: /^addDiv\((.*)\)$/,
   process_param: ABConvert_IOEnum.el,
   process_return: ABConvert_IOEnum.el,
@@ -246,7 +245,7 @@ const abc_addDiv = ABConvert.factory({
     const matchs = header.match(/^addDiv\((.*)\)$/)
     if (!matchs || !matchs[1]) return content
     const arg1 = matchs[1]
-    // 修改元素
+    // 요소 수정
     if(content.children.length!=1) return content
     const sub_el = content.children[0]
     sub_el.remove()
@@ -258,39 +257,39 @@ const abc_addDiv = ABConvert.factory({
 
 const abc_title = ABConvert.factory({
   id: "title",
-  name: "标题",
+  name: "제목",
   match: /^#(.*)/,
-  detail: "若直接处理代码或表格块，则会有特殊风格",
+  detail: "코드나 테이블 블록을 직접 처리할 경우, 특별한 스타일이 적용됨",
   process_param: ABConvert_IOEnum.el,
   process_return: ABConvert_IOEnum.el,
-  process: (el, header, content: HTMLElement): HTMLElement=>{ // content有特殊class，不能更换。要在他下面套壳
+  process: (el, header, content: HTMLElement): HTMLElement=>{ // content에 특별한 클래스가 있어, 변경할 수 없음. 그 아래에 껍질을 씌워야 함
     const matchs = header.match(/^#(.*)/)
     if (!matchs || !matchs[1]) return content
     const arg1 = matchs[1]
 
-    // 修改元素 - 把旧元素取出文档树
+    // 요소 수정 - 기존 요소를 문서 트리에서 제거
     const el_content = document.createElement("div");
     while (content.firstChild) {
       const item = content.firstChild;
       content.removeChild(item)
       el_content.appendChild(item)
     }
-    // 修改元素 - 重新构建结构
+    // 요소 수정 - 구조 재구성
     const el_root = document.createElement("div"); content.appendChild(el_root); el_root.classList.add("ab-deco-title");
     const el_title = document.createElement("div"); el_root.appendChild(el_title); el_title.classList.add("ab-deco-title-title");
     const el_title_p = document.createElement("p"); el_title.appendChild(el_title_p); el_title_p.textContent = arg1;
     el_root.appendChild(el_content); el_content.classList.add("ab-deco-title-content");
 
-    // 判断元素类型修改，以修改title风格 // TODO 话说混合应该用第一个还是直接none？先用第一个吧，因为说不定后面的是工具栏之类的
+    // 요소 유형에 따라 제목 스타일 수정 // TODO 혼합은 첫 번째를 사용해야 하는지 아니면 그냥 none을 사용해야 하는지? 일단 첫 번째를 사용, 왜냐하면 나중에 도구 모음 등이 있을 수 있음
     let el_content_sub = el_content.childNodes[0]; if (!el_content_sub) return content;
-    if (el_content_sub instanceof HTMLDivElement && el_content.childNodes.length == 1 && el_content.childNodes[0].childNodes[0]) { el_content_sub = el_content.childNodes[0].childNodes[0] } // 如果是重渲染，则再往下一层
+    if (el_content_sub instanceof HTMLDivElement && el_content.childNodes.length == 1 && el_content.childNodes[0].childNodes[0]) { el_content_sub = el_content.childNodes[0].childNodes[0] } // 재렌더링인 경우, 한 단계 더 아래로
     let title_type = "none"
     if (el_content_sub instanceof HTMLQuoteElement){title_type = "quote"
-      // 这里借用callout的样式
+      // 여기서 callout 스타일을 차용
       el_root.classList.add("callout")
       el_title.classList.add("callout-title");
       el_content.classList.add("callout-content");
-      // 去除原来的引用块样式
+      // 원래의 인용 블록 스타일 제거
       const el_content_sub_parent =  el_content_sub.parentNode; if (!el_content_sub_parent) return content
       while (el_content_sub.firstChild) {
         el_content_sub_parent.insertBefore(el_content_sub.firstChild, el_content_sub);
@@ -300,14 +299,6 @@ const abc_title = ABConvert.factory({
     else if (el_content_sub instanceof HTMLTableElement){title_type = "table"}
     else if (el_content_sub instanceof HTMLUListElement){title_type = "ul"}
     else if (el_content_sub instanceof HTMLPreElement){title_type = "pre"}
-    // ;(()=>{
-    //   let color:string = window.getComputedStyle(el_content_sub ,null).getPropertyValue('background-color'); 
-    //   if (color) el_title.setAttribute("style", `background-color:${color}`)
-    //   else {
-    //   color = window.getComputedStyle(el_content_sub ,null).getPropertyValue('background'); 
-    //   el_title.setAttribute("style", `background:${color}`)
-    //   }
-    // })//()
     el_title.setAttribute("title-type", title_type)
     return content
   }

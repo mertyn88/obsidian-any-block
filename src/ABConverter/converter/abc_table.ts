@@ -1,9 +1,9 @@
 /**
- * 处理器_表格版
+ * 처리기_표 버전
  * 
- * - md_str <-> 表格数据
- * - 表格数据 <-> html
- * - 列表数据 -> 表格数据
+ * - md_str <-> 표 데이터
+ * - 표 데이터 <-> html
+ * - 목록 데이터 -> 표 데이터
  */
 
 import { ABReg } from '../ABReg'
@@ -13,9 +13,9 @@ import { type ListItem, type List_ListItem, ListProcess, abc_title2listdata, abc
 import { type C2ListItem, type List_C2ListItem, C2ListProcess } from "./abc_c2list"
 
 /**
- * 通用表格数据，一个元素等于是一个单元格项 (th/td)
+ * 일반 표 데이터, 하나의 요소는 하나의 셀 항목 (th/td)과 같습니다.
  * 
- * 例如：
+ * 예를 들어:
  * - a1
  *   - a2
  *     - a3
@@ -26,27 +26,27 @@ import { type C2ListItem, type List_C2ListItem, C2ListProcess } from "./abc_c2li
  * |^ |b2|b3|
  * with
  * {
- *   // 前两列是ListItem来的东西
- *   // 第2列是用来算第3列的，将第3列算出来后，即数据分析完后，第2列就没有用了
- *   {a1, 无用, 2, 1},
- *   {a2, 无用, 1, 1},
- *   {a3, 无用, 1, 1},
- *   {b2, 无用, 1, 2},
- *   {b3, 无用, 1, 2},
+ *   // 앞 두 열은 ListItem에서 온 것입니다.
+ *   // 두 번째 열은 세 번째 열을 계산하는 데 사용되며, 세 번째 열이 계산된 후에는 두 번째 열이 더 이상 필요하지 않습니다.
+ *   {a1, 무용, 2, 1},
+ *   {a2, 무용, 1, 1},
+ *   {a3, 무용, 1, 1},
+ *   {b2, 무용, 1, 2},
+ *   {b3, 무용, 1, 2},
  * }
  */
 export interface TableItem extends ListItem{
-    tableRowSpan: number,       // 跨行数
-    //tableColumnSpan: number,  // 跨列数
-    tableRow: number,           // 对应首行序列
-    //tableColum: number,       // 对应首列序列
+    tableRowSpan: number,       // 행 수
+    //tableColumnSpan: number,  // 열 수
+    tableRow: number,           // 해당하는 첫 번째 행 시퀀스
+    //tableColum: number,       // 해당하는 첫 번째 열 시퀀스
 }
 export type List_TableItem = TableItem[]  
 
-/// 一些表格相关的工具集
+/// 일부 표 관련 도구 모음
 export class TableProcess{
 
-  /** 列表转二维表格 */
+  /** 목록을 2차원 표로 변환 */
   static list2ut(text: string, div: HTMLDivElement, modeT=false) {
     //【old】
     /*let list_itemInfo = ListProcess.old_ulist2data(text)
@@ -59,7 +59,7 @@ export class TableProcess{
     return TableProcess.data2table(data, div, modeT)
   }
 
-  /** 列表转时间线 */
+  /** 목록을 타임라인으로 변환 */
   static list2timeline(text: string, div: HTMLDivElement, modeT=false) {
     let data = C2ListProcess.list2c2data(text)
     div = TableProcess.data2table(data, div, modeT)
@@ -68,7 +68,7 @@ export class TableProcess{
     return div 
   }
 
-  /** 标题转时间线 */
+  /** 제목을 타임라인으로 변환 */
   static title2timeline(text: string, div: HTMLDivElement, modeT=false) {
     let data = C2ListProcess.title2c2data(text)
     div = TableProcess.data2table(data, div, modeT)
@@ -77,64 +77,64 @@ export class TableProcess{
     return div 
   }
 
-  /** 列表数据转表格 */
+  /** 목록 데이터를 표로 변환 */
   static data2table(
     list_itemInfo: List_ListItem, 
     div: HTMLDivElement,
-    modeT: boolean        // 是否转置
+    modeT: boolean        // 전치 여부
   ){
-    // 组装成表格数据 (列表是深度优先)
+    // 표 데이터로 조립 (목록은 깊이 우선)
     let list_tableInfo:List_TableItem = []
-    let prev_line = -1   // 并存储后一行的序列!
-    let prev_level = 999 // 上一行的等级
+    let prev_line = -1   // 다음 행의 시퀀스를 저장!
+    let prev_level = 999 // 이전 행의 레벨
     for (let i=0; i<list_itemInfo.length; i++){
       let item = list_itemInfo[i]
       
-      // 获取跨行数
+      // 행 수 가져오기
       let tableRow = 1
       let row_level = list_itemInfo[i].level
       for (let j=i+1; j<list_itemInfo.length; j++) {
-        if (list_itemInfo[j].level > row_level){                  // 在右侧，不换行
+        if (list_itemInfo[j].level > row_level){                  // 오른쪽에 있으며, 줄 바꿈 없음
           row_level = list_itemInfo[j].level
         }
-        else if (list_itemInfo[j].level > list_itemInfo[i].level){// 换行但是不换item项的行
+        else if (list_itemInfo[j].level > list_itemInfo[i].level){// 줄 바꿈은 있지만 항목의 행은 바꾸지 않음
           row_level = list_itemInfo[j].level
           tableRow++
         }
-        else break                                                // 换item项的行
+        else break                                                // 항목의 행을 바꿈
       }
 
-      // 获取所在行数。分换行（创建新行）和不换行，第一行总是创建新行
-      // 这里的if表示该换行了
+      // 행 수 가져오기. 줄 바꿈 (새 행 생성)과 줄 바꿈 없음으로 나뉨, 첫 번째 행은 항상 새 행 생성
+      // 여기의 if는 줄 바꿈을 의미합니다.
       if (item.level <= prev_level) {
         prev_line++
       }
       prev_level = item.level
 
-      // 填写
+      // 작성
       list_tableInfo.push({
-        content: item.content,  // 内容
-        level: item.level,      // 级别
-        tableRowSpan: tableRow,     // 跨行数
-        tableRow: prev_line    // 对应首行序列
+        content: item.content,  // 내용
+        level: item.level,      // 레벨
+        tableRowSpan: tableRow,     // 행 수
+        tableRow: prev_line    // 해당하는 첫 번째 행 시퀀스
       })
     }
 
-    // GeneratorBranchTable，原来是svelte
+    // GeneratorBranchTable, 원래는 svelte
     {
-      // 表格数据 组装成表格
+      // 표 데이터 표로 조립
       const table = document.createElement("table"); div.appendChild(table); table.classList.add("ab-table", "ab-branch-table")
       if (modeT) table.setAttribute("modeT", "true")
       let thead
-      if(list_tableInfo[0].content.indexOf("< ")==0){ // 判断是否有表头
+      if(list_tableInfo[0].content.indexOf("< ")==0){ // 헤더가 있는지 확인
         thead = document.createElement("thead"); table.appendChild(thead);
         list_tableInfo[0].content=list_tableInfo[0].content.replace(/^\<\s/,"")
       }
       const tbody = document.createElement("tbody"); table.appendChild(tbody);
-      for (let index_line=0; index_line<prev_line+1; index_line++){ // 遍历表格行，创建tr……
+      for (let index_line=0; index_line<prev_line+1; index_line++){ // 표 행을 순회하며 tr 생성……
         let is_head
         let tr
-        if (index_line==0 && thead){ // 判断是否第一行&&是否有表头
+        if (index_line==0 && thead){ // 첫 번째 행인지 && 헤더가 있는지 확인
           tr = document.createElement("tr"); thead.appendChild(tr);
           is_head = true
         }
@@ -142,7 +142,7 @@ export class TableProcess{
           is_head = false
           tr = document.createElement("tr"); tbody.appendChild(tr);
         }
-        for (let item of list_tableInfo){                           // 遍历表格列，创建td
+        for (let item of list_tableInfo){                           // 표 열을 순회하며 td 생성
           if (item.tableRow!=index_line) continue
           let td = document.createElement(is_head?"th":"td"); tr.appendChild(td);
             td.setAttribute("rowspan", item.tableRowSpan.toString()); td.setAttribute("col_index", item.level.toString())
@@ -155,10 +155,10 @@ export class TableProcess{
   }
 }
 
-// 纯组合，后续用别名模块替代
+// 순수 조합, 후속 별칭 모듈 대체
 const abc_title2table = ABConvert.factory({
   id: "title2table",
-  name: "标题到表格",
+  name: "제목을 표로",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
   process: (el, header, content: string): HTMLElement=>{
@@ -167,10 +167,10 @@ const abc_title2table = ABConvert.factory({
   }
 })
 
-// 纯组合，后续用别名模块替代
+// 순수 조합, 후속 별칭 모듈 대체
 const abc_list2table = ABConvert.factory({
   id: "list2table",
-  name: "列表转表格",
+  name: "목록을 표로",
   match: /list2(md)?table(T)?/,
   default: "list2table",
   process_param: ABConvert_IOEnum.text,
@@ -185,7 +185,7 @@ const abc_list2table = ABConvert.factory({
 
 const abc_list2c2table = ABConvert.factory({
   id: "list2c2t",
-  name: "列表转二列表格",
+  name: "목록을 이중 목록 표로",
   match: "list2c2t",
   process_param: ABConvert_IOEnum.text,
   process_return: ABConvert_IOEnum.el,
@@ -198,7 +198,7 @@ const abc_list2c2table = ABConvert.factory({
 
 const abc_list2ut = ABConvert.factory({
   id: "list2ut",
-  name: "列表转二维表格",
+  name: "목록을 2차원 표로",
   match: /list2(md)?ut(T)?/,
   default: "list2ut",
   process_param: ABConvert_IOEnum.text,
@@ -213,7 +213,7 @@ const abc_list2ut = ABConvert.factory({
 
 const abc_list2timeline = ABConvert.factory({
   id: "list2timeline",
-  name: "列表转时间线",
+  name: "목록을 타임라인으로",
   match: /list2(md)?timeline(T)?/,
   default: "list2mdtimeline",
   process_param: ABConvert_IOEnum.text,
@@ -228,7 +228,7 @@ const abc_list2timeline = ABConvert.factory({
 
 const abc_title2timeline = ABConvert.factory({
   id: "title2timeline",
-  name: "标题转时间线",
+  name: "제목을 타임라인으로",
   match: /title2(md)?timeline(T)?/,
   default: "title2mdtimeline",
   process_param: ABConvert_IOEnum.text,
